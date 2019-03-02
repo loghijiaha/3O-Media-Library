@@ -9,14 +9,7 @@
     tools:openDrawer="start">
 
 
-    <android.support.design.widget.NavigationView
-        android:id="@+id/nav_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:fitsSystemWindows="true"
-        app:headerLayout="@layout/nav_header_main"
-        app:menu="@menu/activity_main_drawer" />
+
 
     <com.sothree.slidinguppanel.SlidingUpPanelLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -44,10 +37,16 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-
             <include layout="@layout/activity_second" />
         </RelativeLayout>
     </com.sothree.slidinguppanel.SlidingUpPanelLayout>
 
-
+    <android.support.design.widget.NavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:fitsSystemWindows="true"
+        app:headerLayout="@layout/nav_header_main"
+        app:menu="@menu/activity_main_drawer" />
 </android.support.v4.widget.DrawerLayout>

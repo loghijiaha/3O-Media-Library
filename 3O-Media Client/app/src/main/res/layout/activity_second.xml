@@ -75,15 +75,15 @@
 
     <TextView
         android:id="@+id/songName"
-        android:layout_width="wrap_content"
-        android:layout_height="25dp"
+        android:layout_width="291dp"
+        android:layout_height="59dp"
         android:text="Song"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.501"
+        app:layout_constraintHorizontal_bias="0.591"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.113" />
+        app:layout_constraintVertical_bias="0.043" />
 
     <ImageView
         android:id="@+id/mp3Image"
@@ -91,23 +91,26 @@
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.549"
+        app:layout_constraintHorizontal_bias="0.637"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0"
+        app:layout_constraintVertical_bias="0.0"
         app:srcCompat="@drawable/owl" />
 
     <VideoView
         android:id="@+id/video"
-        android:layout_width="410dp"
-        android:layout_height="400dp"
+        android:layout_width="fill_parent"
+        android:layout_height="490dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.549"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0"
-        />
+        app:layout_constraintVertical_bias="0.417" />
+    <!--<com.github.barteksc.pdfviewer.PDFView-->
+        <!--android:id="@+id/pdfView"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"/>-->
 
 
 </android.support.constraint.ConstraintLayout>

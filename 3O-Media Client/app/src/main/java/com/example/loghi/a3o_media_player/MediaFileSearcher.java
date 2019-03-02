@@ -66,14 +66,5 @@ public class MediaFileSearcher extends IntentService {
 //        }
 //    }
 
-    private Runnable sendUpdatesToUI = new Runnable() {
-        public void run() {
-            intent.putExtra("counter", String.valueOf(++counter));
-            intent.putParcelableArrayListExtra("MediaList", mediaList);
 
-            sendBroadcast(intent);
-            handler.postDelayed(this, 10000); // 5 seconds
-
-        }
-    };
 }

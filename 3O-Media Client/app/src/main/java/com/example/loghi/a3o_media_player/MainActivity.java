@@ -25,6 +25,7 @@ import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -39,6 +40,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.GridLayout;
 import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -48,6 +50,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -56,25 +60,36 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     private MediaPlayer mediaPlayer;
-    public TextView songName;
+    public static TextView songName;
     private double timeElapsed = 0, finalTime = 0;
     private int forwardTime = 2000, backwardTime = 2000;
     private Handler durationHandler = new Handler();
-    private SeekBar seekbar;
-    private ImageButton playBtn;
-    private ImageButton pauseBtn;
-    private ImageView mp3Image;
+    public static SeekBar seekbar;
+    public static ImageButton playBtn;
+    public static ImageButton pauseBtn;
+    public static ImageButton forwardBtn;
+    public static ImageButton rewindBtn;
+    public static ImageView mp3Image;
     private MediaMetadataRetriever mmr;
     private VideoView video;
     private RecyclerView recyclerView;
-    private ArrayList<Media> mediaList;
+    private ArrayList<MediaItem> songList;
+    private ArrayList<MediaItem> movieList;
+    private ArrayList<MediaItem> ebookList;
     private Bitmap owl;
-    Intent fileDearcherIntent;
-        public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 123;
+    private HashMap<String,ArrayList<Media>> catagory;
+    private HashMap<String,ArrayList<Media>> catagory1;
+    private HashMap<String,ArrayList<Media>> catagory2;
+    public SlidingUpPanelLayout layout;
+    private MediaAdapter mediaAdapter;
+    public static VideoView videoView;
+
+    public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 123;
     private static final  String TAG = "MainActivity";
 
 //    Above api level 28
@@ -101,10 +116,10 @@ public class MainActivity extends AppCompatActivity
 //            //verify if the message we received is the one that we want
 //                //get the arrayList we have sent with intent (the one from BroadcastSender)
 //                //notice that we needed the key "value"
-//                mediaList = intent.getParcelableArrayListExtra("MediaList");
+//                songList = intent.getParcelableArrayListExtra("songList");
 //
 //                //sets the adapter that provides data to the list.
-//            mediaListView.setAdapter(new MediaAdapter(mediaList,MainActivity.this));
+//            songListView.setAdapter(new MediaAdapter(songList,MainActivity.this));
 //
 //
 //
@@ -125,17 +140,24 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        fileDearcherIntent = new Intent(this,MediaFileSearcher.class);
         initializeViews();
         pauseBtn.setVisibility(View.INVISIBLE);
         video.setVisibility(View.INVISIBLE);
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 
-        RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(this, 2);
+        final GridLayoutManager mLayoutManager = new GridLayoutManager(this,2);
+        mediaAdapter=new MediaAdapter(MainActivity.this,songList,mediaPlayer,layout);
+
+        mLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                return mediaAdapter.getItemViewType(position)== 0 ?2:1;
+            }
+        });
         recyclerView.setLayoutManager(mLayoutManager);
 //        recyclerView.addItemDecoration(new GridSpacingItemDecoration(2, dpToPx(10), true));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
-        recyclerView.setAdapter(new MediaAdapter(MainActivity.this,mediaList));
+        recyclerView.setAdapter(mediaAdapter);
 
     }
     private int dpToPx(int dp) {
@@ -143,40 +165,40 @@ public class MainActivity extends AppCompatActivity
         return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics()));
     }
 
-    public class GridSpacingItemDecoration extends RecyclerView.ItemDecoration {
-
-        private int spanCount;
-        private int spacing;
-        private boolean includeEdge;
-
-        public GridSpacingItemDecoration(int spanCount, int spacing, boolean includeEdge) {
-            this.spanCount = spanCount;
-            this.spacing = spacing;
-            this.includeEdge = includeEdge;
-        }
-
-        @Override
-        public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
-            int position = parent.getChildAdapterPosition(view); // item position
-            int column = position % spanCount; // item column
-
-            if (includeEdge) {
-                outRect.left = spacing - column * spacing / spanCount; // spacing - column * ((1f / spanCount) * spacing)
-                outRect.right = (column + 1) * spacing / spanCount; // (column + 1) * ((1f / spanCount) * spacing)
-
-                if (position < spanCount) { // top edge
-                    outRect.top = spacing;
-                }
-                outRect.bottom = spacing; // item bottom
-            } else {
-                outRect.left = column * spacing / spanCount; // column * ((1f / spanCount) * spacing)
-                outRect.right = spacing - (column + 1) * spacing / spanCount; // spacing - (column + 1) * ((1f /    spanCount) * spacing)
-                if (position >= spanCount) {
-                    outRect.top = spacing; // item top
-                }
-            }
-        }
-    }
+//    public class GridSpacingItemDecoration extends RecyclerView.ItemDecoration {
+//
+//        private int spanCount;
+//        private int spacing;
+//        private boolean includeEdge;
+//
+//        public GridSpacingItemDecoration(int spanCount, int spacing, boolean includeEdge) {
+//            this.spanCount = spanCount;
+//            this.spacing = spacing;
+//            this.includeEdge = includeEdge;
+//        }
+//
+//        @Override
+//        public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
+//            int position = parent.getChildAdapterPosition(view); // item position
+//            int column = position % spanCount; // item column
+//
+//            if (includeEdge) {
+//                outRect.left = spacing - column * spacing / spanCount; // spacing - column * ((1f / spanCount) * spacing)
+//                outRect.right = (column + 1) * spacing / spanCount; // (column + 1) * ((1f / spanCount) * spacing)
+//
+//                if (position < spanCount) { // top edge
+//                    outRect.top = spacing;
+//                }
+//                outRect.bottom = spacing; // item bottom
+//            } else {
+//                outRect.left = column * spacing / spanCount; // column * ((1f / spanCount) * spacing)
+//                outRect.right = spacing - (column + 1) * spacing / spanCount; // spacing - (column + 1) * ((1f /    spanCount) * spacing)
+//                if (position >= spanCount) {
+//                    outRect.top = spacing; // item top
+//                }
+//            }
+//        }
+//    }
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -184,6 +206,16 @@ public class MainActivity extends AppCompatActivity
             drawer.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
+        }
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        if (checkPermissionREAD_EXTERNAL_STORAGE(this)) {
+            getsongList();
+            getmovieList();
+            getebookList();
         }
     }
 
@@ -203,9 +235,8 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            return true;
+            Toast.makeText(this, "Clicked item one", Toast.LENGTH_SHORT).show();
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -216,11 +247,14 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_ebook) {
-            // Handle the camera action
+            Toast.makeText(this, "Ebook", Toast.LENGTH_SHORT).show();
+            mediaAdapter.setMediaList(ebookList);
         } else if (id == R.id.nav_music) {
-
+            mediaAdapter.setMediaList(songList);
+            Toast.makeText(this, "Songs", Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_movie) {
-
+            mediaAdapter.setMediaList(movieList);
+            Toast.makeText(this, "Videos", Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_send) {
@@ -251,24 +285,40 @@ public class MainActivity extends AppCompatActivity
         finalTime = mediaPlayer.getDuration();
         seekbar = (SeekBar) findViewById(R.id.seekBar);
         songName.setText("Sample_Song.mp3");
-        mp3Image = (ImageView) findViewById(R.id.media_pause) ;
+        mp3Image = (ImageView) findViewById(R.id.mp3Image) ;
         video = (VideoView) findViewById(R.id.video);
         seekbar.setMax((int) finalTime);
         playBtn=(ImageButton)findViewById(R.id.media_play);
         pauseBtn=(ImageButton)findViewById(R.id.media_pause);
-        mediaList = new ArrayList<>();
+        forwardBtn= (ImageButton)findViewById(R.id.media_ff);
+        rewindBtn=(ImageButton)findViewById(R.id.media_rew);
+        songList = new ArrayList<>();
+        movieList = new ArrayList<>();
+        ebookList = new ArrayList<>();
         owl= BitmapFactory.decodeResource(this.getResources(),R.drawable.owl);
-        if (checkPermissionREAD_EXTERNAL_STORAGE(this)) {
-           getMediaList();
-        }
+        layout = (SlidingUpPanelLayout)findViewById(R.id.slideUp_layout);
+        videoView = (VideoView)findViewById(R.id.video);
+        catagory = new HashMap<>();
+        catagory1 = new HashMap<>();
+        catagory2 =new HashMap<>();
 
     }
 
     public void play(View view) {
-        mediaPlayer.start();
+        if(timeElapsed>0){
+            mediaPlayer.start();
+        }else {
+            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                public void onPrepared(MediaPlayer mp) {
+                    mp.start();
+                }
+            });
+            mediaPlayer.prepareAsync();
+        }
         timeElapsed = mediaPlayer.getCurrentPosition();
         seekbar.setProgress((int) timeElapsed);
         durationHandler.postDelayed(updateSeekBarTime, 100);
+        finalTime = mediaPlayer.getDuration();
         playBtn.setVisibility(View.INVISIBLE);
         pauseBtn.setVisibility(View.VISIBLE);
     }
@@ -307,7 +357,7 @@ public class MainActivity extends AppCompatActivity
         try {
             mmr = new MediaMetadataRetriever();
             mmr.setDataSource(media.getMediaPath());
-            Log.i("list",media.getMediaPath());
+
             byte[] artBytes =  mmr.getEmbeddedPicture();
             if(artBytes!=null)
             {
@@ -324,9 +374,7 @@ public class MainActivity extends AppCompatActivity
 
 
     }
-    public void getMediaList(){
-        Log.i(TAG,"hello");
-
+    public void getsongList(){
         ContentResolver musicResolver = getContentResolver();
         Uri musicUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         Cursor musicCursor = musicResolver.query(musicUri, null, null, null, null);
@@ -340,20 +388,136 @@ public class MainActivity extends AppCompatActivity
             int artistColumn = musicCursor.getColumnIndex
                     (android.provider.MediaStore.Audio.Media.ARTIST);
             int dataColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.DATA);
+            int mimeColumn = musicCursor.getColumnIndex(MediaStore.Video.Media.MIME_TYPE);
             //add songs to list
             do {
                 long thisId = musicCursor.getLong(idColumn);
                 String thisTitle = musicCursor.getString(titleColumn);
                 String thisArtist = musicCursor.getString(artistColumn);
                 String thisData = musicCursor.getString(dataColumn);
-                Media media = new Media(thisId, thisTitle, thisArtist,thisData);
+                String thisMime = musicCursor.getString(mimeColumn);
+                Media media = new Media(thisId, thisTitle, thisArtist,thisData,thisMime);
                 getBitmap(media);
-                mediaList.add(media);
+                ArrayList<Media> medList = catagory.get(thisArtist);
+                if (medList !=null ){
+                    medList.add(media);
+                }else {
+                    ArrayList<Media> tempMed = new ArrayList<>();
+                    tempMed.add(media);
+                    catagory.put(thisArtist,tempMed);
+                }
 
             }
             while (musicCursor.moveToNext());
+            for (Map.Entry<String, ArrayList<Media>> cat : catagory.entrySet()){
+                songList.add(new Header(cat.getKey()));
+                for(Media media : cat.getValue()){
+                    songList.add(media);
+                }
+
+            }
+
+
+        }
+
+    }
+    public void getmovieList(){
+
+        ContentResolver videoResolver = getContentResolver();
+        Uri videoUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+        Cursor videoCursor = videoResolver.query(videoUri, null, null, null, null);
+        if(videoCursor!=null && videoCursor.moveToFirst()){
+            //get columns
+            int titleColumn = videoCursor.getColumnIndex
+                    (android.provider.MediaStore.Video.Media.TITLE);
+
+            int idColumn = videoCursor.getColumnIndex
+                    (android.provider.MediaStore.Video.Media._ID);
+            int artistColumn = videoCursor.getColumnIndex
+                    (android.provider.MediaStore.Video.Media.ARTIST);
+            int dataColumn = videoCursor.getColumnIndex(MediaStore.Video.Media.DATA);
+            int mimeColumn = videoCursor.getColumnIndex(MediaStore.Video.Media.MIME_TYPE);
+            //add songs to list
+            do {
+                long thisId = videoCursor.getLong(idColumn);
+                String thisTitle = videoCursor.getString(titleColumn);
+                String thisArtist = videoCursor.getString(artistColumn);
+                String thisData = videoCursor.getString(dataColumn);
+                String thisMime = videoCursor.getString(mimeColumn);
+                Media media = new Media(thisId, thisTitle, thisArtist,thisData,thisMime);
+                getBitmap(media);
+                Log.i("mime",thisMime);
+                ArrayList<Media> medList = catagory1.get(thisArtist);
+
+                if (medList !=null ){
+                    medList.add(media);
+                }else {
+                    ArrayList<Media> tempMed = new ArrayList<>();
+                    tempMed.add(media);
+                    catagory1.put(thisArtist,tempMed);
+                }
+
+                Log.i("videolist",media.getMediaPath());
+            }
+            while (videoCursor.moveToNext());
+            for (Map.Entry<String, ArrayList<Media>> cat : catagory1.entrySet()){
+                movieList.add(new Header(cat.getKey()));
+                for(Media media : cat.getValue()){
+                    movieList.add(media);
+                }
+
+            }
+
+        }
+
+    }
+    public void getebookList(){
+        String selection = "_data LIKE '%.pdf'";
+        try (Cursor cursor = getApplicationContext().getContentResolver().query(MediaStore.Files.getContentUri("external"), null, selection, null, "_id DESC")) {
+            if (cursor== null || cursor.getCount() <= 0 || !cursor.moveToFirst()) {
+                // this means error, or simply no results found
+                return;
+            }
+            int titleColumn = cursor.getColumnIndex
+                    (MediaStore.Files.FileColumns.TITLE);
+
+            int idColumn = cursor.getColumnIndex
+                    (android.provider.MediaStore.Files.FileColumns._ID);
+            int artistColumn = cursor.getColumnIndex
+                    (MediaStore.Files.FileColumns.PARENT);
+            int dataColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
+            int mimeColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.MIME_TYPE);
+            do {
+
+                String thisTitle = cursor.getString(titleColumn);
+                long thisId = cursor.getLong(idColumn);
+                String thisArtist = cursor.getString(artistColumn);
+                String thisData = cursor.getString(dataColumn);
+                String thisMime = cursor.getString(mimeColumn);
+                Media media = new Media(thisId, thisTitle, thisArtist,thisData,thisMime);
+                getBitmap(media);
+                Log.i("pdfffff",thisArtist);
+                ArrayList<Media> medList = catagory2.get(thisArtist);
+
+                if (medList !=null ){
+                    medList.add(media);
+                }else {
+                    ArrayList<Media> tempMed = new ArrayList<>();
+                    tempMed.add(media);
+                    catagory2.put(thisArtist,tempMed);
+                }
+                // your logic goes here
+            } while (cursor.moveToNext());
+            for (Map.Entry<String, ArrayList<Media>> cat : catagory2.entrySet()){
+                ebookList.add(new Header(cat.getKey()));
+                for(Media media : cat.getValue()){
+                    ebookList.add(media);
+                }
+
+            }
         }
     }
+
 
     public boolean checkPermissionREAD_EXTERNAL_STORAGE(
             final Context context) {

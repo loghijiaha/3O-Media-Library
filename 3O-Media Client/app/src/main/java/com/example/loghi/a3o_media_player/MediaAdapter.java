@@ -1,26 +1,32 @@
 package com.example.loghi.a3o_media_player;
 
+import android.content.ContentUris;
 import android.graphics.Bitmap;
+import android.media.MediaPlayer;
+import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.List;
 
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.VideoView;
 
 import com.bumptech.glide.Glide;
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 //public class MediaAdapter extends BaseAdapter {
 //    private ArrayList<Media> medias;
@@ -64,63 +70,154 @@ import com.bumptech.glide.Glide;
 //        songLay.setTag(position);
 //        return songLay;    }
 //}
-class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MyViewHolder> {
-
+class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private static final int TYPE_HEADER = 0;
+    private static final int TYPE_ITEM = 1;
+    private MediaPlayer mediaPlayer;
     private Context mContext;
-    private List<Media> mediaList;
 
-    public class MyViewHolder extends RecyclerView.ViewHolder {
-        public TextView title, artist;
+   
+
+    private List<MediaItem> mediaList;
+    public SlidingUpPanelLayout layout;
+
+    class MItem extends RecyclerView.ViewHolder {
+        public TextView title;
         public ImageView image,overflow;
-
-        public MyViewHolder(View view) {
+        public Media media;
+        public MItem(View view) {
             super(view);
             title = (TextView) view.findViewById(R.id.media_title);
-            artist = (TextView) view.findViewById(R.id.media_artist);
             image = (ImageView) view.findViewById(R.id.media_image);
             overflow = (ImageView) view.findViewById(R.id.overflow);
-
+        }
+    }
+    class MHeader extends RecyclerView.ViewHolder{
+        TextView txtTitle;
+        public MHeader(View itemView) {
+            super(itemView);
+            this.txtTitle = (TextView)itemView.findViewById(R.id.txtHeader);
         }
     }
 
-
-    public MediaAdapter(Context mContext, List<Media> mediaList) {
+    public MediaAdapter(Context mContext, List<MediaItem> mediaList,MediaPlayer mediaPlayer,SlidingUpPanelLayout layout) {
+        this.mediaPlayer=mediaPlayer;
         this.mContext = mContext;
         this.mediaList = mediaList;
+        this.layout=layout;
+    }
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        if(viewType==TYPE_HEADER)
+        {
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.header_author, parent, false);
+            return  new MHeader(v);
+        }
+        else
+        {
+            View itemView = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.media_element, parent, false);
+
+            return new MItem(itemView);
+        }
+        // return null;
     }
 
     @Override
-    public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.media_element, parent, false);
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        if(holder instanceof MHeader)
+        {
+            // MHeader MHeader = (MHeader)holder;
+            Header  currentItem = (Header) mediaList.get(position);
+            MHeader MHeader = (MHeader)holder;
+            MHeader.txtTitle.setText(currentItem.getHeader());
+        }
+        else if(holder instanceof MItem)
+        {
+            final Media media = (Media)mediaList.get(position);
+            final MItem mItem =(MItem)holder;
+            mItem.media= media;
+            mItem.title.setText(media.getTitle());
 
-        return new MyViewHolder(itemView);
+
+            // loading media cover using Glide library
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            media.getImage().compress(Bitmap.CompressFormat.PNG, 100, stream);
+            Glide.with(mContext)
+                    .load(stream.toByteArray())
+                    .asBitmap()
+                    .error(R.drawable.owl)
+                    .into(mItem.image);
+            mItem.overflow.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    showPopupMenu(mItem.overflow);
+                }
+            });
+
+            mItem.image.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mediaPlayer.reset();
+                    if(MainActivity.pauseBtn.getVisibility()==View.VISIBLE){
+                        MainActivity.pauseBtn.setVisibility(View.INVISIBLE);
+                        MainActivity.playBtn.setVisibility(View.VISIBLE);
+                    }
+                    mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                        public void onPrepared(MediaPlayer mp) {
+                            mp.start();
+                        }
+
+                    });
+                    try {
+                        Uri trackUri = ContentUris.withAppendedId(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                                mItem.media.getId());
+                        if(mItem.media.getMimeType().startsWith("audio")) {
+                            MainActivity.videoView.setVisibility(View.INVISIBLE);
+                            mediaPlayer.setDataSource(mContext, trackUri);
+                            MainActivity.songName.setText(media.getTitle());
+                            MainActivity.mp3Image.setVisibility(View.VISIBLE);
+
+                            MainActivity.mp3Image.setImageBitmap(media.getImage());
+                            MainActivity.playBtn.setVisibility(View.VISIBLE);
+                            MainActivity.pauseBtn.setVisibility(View.VISIBLE);
+                            MainActivity.rewindBtn.setVisibility(View.VISIBLE);
+                            MainActivity.forwardBtn.setVisibility(View.VISIBLE);
+                            MainActivity.seekbar.setVisibility(View.VISIBLE);
+                            layout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+                        }else if(mItem.media.getMimeType().startsWith("video")){
+                            MainActivity.songName.setText(media.getTitle());
+                            MainActivity.mp3Image.setVisibility(View.INVISIBLE);
+                            MainActivity.playBtn.setVisibility(View.INVISIBLE);
+                            MainActivity.pauseBtn.setVisibility(View.INVISIBLE);
+                            MainActivity.rewindBtn.setVisibility(View.INVISIBLE);
+                            MainActivity.forwardBtn.setVisibility(View.INVISIBLE);
+                            MainActivity.seekbar.setVisibility(View.INVISIBLE);
+                            MediaController mediaController= new MediaController(mContext);
+                            mediaController.setAnchorView(MainActivity.videoView);
+                            //Location of Media File
+                            Uri uri = Uri.parse(mItem.media.getMediaPath());
+                            //Starting VideoView By Setting MediaController and URI
+                            MainActivity.videoView.setVisibility(View.VISIBLE);
+                            MainActivity.videoView.setMediaController(mediaController);
+                            MainActivity.videoView.setVideoPath(mItem.media.getMediaPath());
+                            MainActivity.videoView.start();
+
+                            layout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+                        }else{
+
+                        }
+                    } catch (IOException e) {
+                        Log.e("MUSIC SERVICE", "Error setting data source", e);                    }
+                }
+            });
+        }
+      
     }
-
-    @Override
-    public void onBindViewHolder(final MyViewHolder holder, int position) {
-        Media media = mediaList.get(position);
-        holder.title.setText(media.getTitle());
-        holder.artist.setText(media.getArtist());
-
-        // loading media cover using Glide library
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        media.getImage().compress(Bitmap.CompressFormat.PNG, 100, stream);
-        Glide.with(mContext)
-                .load(stream.toByteArray())
-                .asBitmap()
-                .error(R.drawable.owl)
-                .into(holder.image);
-        holder.overflow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showPopupMenu(holder.overflow);
-            }
-        });
-    }
+    
 
     /**
-     * Showing popup menu when tapping on 3 dots
+     * Showing popup menu when tapping on 3 image
      */
     private void showPopupMenu(View view) {
         // inflate menu
@@ -157,5 +254,28 @@ class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MyViewHolder> {
     @Override
     public int getItemCount() {
         return mediaList.size();
+    }
+    public int getItemViewType(int position) {
+        if(isPositionHeader(position))
+            return TYPE_HEADER;
+        return TYPE_ITEM;
+    }
+
+    public boolean isPositionHeader(int position)
+    {
+
+        return mediaList.get(position) instanceof Header;
+
+    }
+
+    public void setMediaList(List<MediaItem> mediaList) {
+
+        this.mediaList = mediaList;
+        notifyDataSetChanged();
+    }
+    public void clear(){
+        int size = mediaList.size();
+        mediaList.clear();
+        notifyItemRangeRemoved(0,size);
     }
 }

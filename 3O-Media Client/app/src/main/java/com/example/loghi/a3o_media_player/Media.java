@@ -4,35 +4,31 @@ import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class Media implements Parcelable {
+public class Media extends MediaItem {
     private long id;
     private String  title, artist;
-    private String mediaPath;
+    private String mediaPath,mimeType;
     private Bitmap image;
 
-    public Media(long id,String title, String artist,String mediaPath) {
+    public Media(long id,String title, String artist,String mediaPath,String mimeType) {
         this.title = title;
         this.artist=artist;
         this.id=id;
         this.mediaPath=mediaPath;
+        this.mimeType=mimeType;
     }
-    public Media(Parcel source) {
 
-        //you have to call the other constructor to initialize the arrayList
-        // reconstruct from the parcel
-        title= source.readString();
-        mediaPath=source.readString();
-
+    public String getMimeType() {
+        return mimeType;
     }
-    public static final Creator CREATOR = new Creator() {
-        public Media createFromParcel(Parcel in) {
-            return new Media(in);
-        }
 
-        public Media[] newArray(int size) {
-            return new Media[size];
-        }
-    };
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public long getId() {
+        return id;
+    }
 
     public String getTitle() {
         return title;
@@ -63,14 +59,4 @@ public class Media implements Parcelable {
     }
     public void setMediaPath(String mediaPath){ this.mediaPath = mediaPath ;}
 
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(mediaPath);
-        dest.writeString(title);
-    }
 }

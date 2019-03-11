@@ -61,6 +61,13 @@ typings/
 *.ap_
 *.aab
 
+# Media files
+*.mp3
+*.mp4
+*.avi
+*.mov
+*.pdf
+
 # Files for the ART/Dalvik VM
 *.dex
 

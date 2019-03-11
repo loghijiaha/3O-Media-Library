@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>SB Admin - Login</title>
+
+  <!-- Custom fonts for this template-->
+  <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+ 
+  <!-- Custom styles for this template-->
+  <link href="css/sb-admin.css" rel="stylesheet">
+
+</head>
+
+<body class="bg-dark">
+
+  <div class="container">
+    <div class="card card-login mx-auto mt-5">
+      <div class="card-header">Login</div>
+      <div class="card-body">
+        <form id="login">
+          <div class="form-group">
+            <div class="form-label-group">
+              <input type="text" id="user_name" name="user_name" class="form-control" placeholder="Email address" required="required" autofocus="autofocus">
+              <label for="inputEmail">User name</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="form-label-group">
+              <input type="password" id="password" name="password" class="form-control" placeholder="Password" required="required">
+              <label for="inputPassword">Password</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" value="remember-me">
+                Remember Password
+              </label>
+            </div>
+          </div>
+            <button class="btn btn-primary btn-block d-block" id="button" type="submit" >Login</button>
+        </form>
+        <div class="text-center">
+          <a class="d-block small mt-3" href="register.html">Register an Account</a>
+          <a class="d-block small" href="forgot-password.html">Forgot Password?</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap core JavaScript-->
+  <script src="vendor/jquery/jquery.min.js"></script>
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Core plugin JavaScript-->
+  <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+  <script> 
+        // wait for the DOM to be loaded 
+
+        // var xhr = new XMLHttpRequest();
+        // xhr.onreadystatechange=function(event){ console.log("The server says: " + event.target.response); }; 
+        // var formData = new FormData(document.getElementById("login")); 
+        // console.log(formData);
+        // xhr.open("POST", "/login");
+        // xhr.send(formData);
+        //     // bind 'myForm' and provide a simple callback function 
+        //     $('#login').ajaxForm(function() { 
+        //         url : '/login',
+        //         dataType : 'json',
+        //         success : function tokenSuccess(err, response) {
+        //             if(err){
+        //             throw err;
+        //             }
+        //             $window.sessionStorage.accessToken = response.body.token;
+        //             console.log('Login success',token);
+
+        //         } 
+        //     }); 
+        $("button").click(function(e) {
+        e.preventDefault();
+        $.ajax({
+        type: "POST",
+        url: "/login",
+        data: { 
+            user_name: $("#user_name").val(), // < note use of 'this' here
+            password: $("#password").val() 
+        },
+        success: function(result) {
+            alert('Login Successful !!! ');
+            window.sessionStorage.setItem('token', result.token);
+            console.log(window.sessionStorage.getItem('token'));
+            location.href = "http://localhost:8012/"
+        },
+        error: function(result) {
+            alert('Invalid password or username');
+        }
+        });
+        });
+    </script> 
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.js"></script> 
+    <script src="http://malsup.github.com/jquery.form.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <title>3O-Media Server App</title>
+
+  <!-- Custom fonts for this template-->
+  <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.14.1/dist/bootstrap-table.min.css">
+  <!-- Page level plugin CSS-->
+  <link href="vendor/datatables/dataTables.bootstrap4.css" rel="stylesheet">
+
+  <!-- Custom styles for this template-->
+  <link href="css/sb-admin.css" rel="stylesheet">
+
+</head>
+
+<body id="page-top">
+
+  <nav class="navbar navbar-expand navbar-dark bg-dark static-top">
+
+    <a class="navbar-brand mr-1" href="index.html">3O Media Library</a>
+
+    <button class="btn btn-link btn-sm text-white order-1 order-sm-0" id="sidebarToggle" href="#">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Navbar Search -->
+    <form class="d-none d-md-inline-block form-inline ml-auto mr-0 mr-md-3 my-2 my-md-0">
+      <div class="input-group">
+        <input type="text" class="form-control" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2">
+        <div class="input-group-append">
+          <button class="btn btn-primary" type="button">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Navbar -->
+    <ul class="navbar-nav ml-auto ml-md-0">
+      <li class="nav-item dropdown no-arrow">
+        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fas fa-user-circle fa-fw"></i>
+        </a>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+          <a class="dropdown-item" href="#">Settings</a>
+          <a class="dropdown-item" href="#">Activity Log</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">Logout</a>
+        </div>
+      </li>
+    </ul>
+
+  </nav>
+
+  <div id="wrapper">
+
+    <!-- Sidebar -->
+    <ul class="sidebar navbar-nav">
+      <li class="nav-item active">
+        <a class="nav-link" href="index.html">
+          <i class="fas fa-fw fa-tachometer-alt"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="pagesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fas fa-fw fa-folder"></i>
+          <span>Pages</span>
+        </a>
+        <div class="dropdown-menu" aria-labelledby="pagesDropdown">
+          <h6 class="dropdown-header">Login Screens:</h6>
+          <a class="dropdown-item" href="login.html">Login</a>
+          <a class="dropdown-item" href="register.html">Register</a>
+          <a class="dropdown-item" href="forgot-password.html">Forgot Password</a>
+          <div class="dropdown-divider"></div>
+          <h6 class="dropdown-header">Other Pages:</h6>
+          <a class="dropdown-item" href="404.html">404 Page</a>
+          <a class="dropdown-item" href="blank.html">Blank Page</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="charts.html">
+          <i class="fas fa-fw fa-chart-area"></i>
+          <span>Add Media</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="remote.html">
+          <i class="fas fa-fw fa-table"></i>
+          <span>Remote streaming</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="tables.html">
+          <i class="fas fa-fw fa-table"></i>
+          <span>Summary</span></a>
+      </li>
+      
+    </ul>
+
+    <div id="content-wrapper">
+
+      <div class="container-fluid">
+
+        <!-- Breadcrumbs-->
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a href="#">Dashboard</a>
+          </li>
+          <li class="breadcrumb-item active">Overview</li>
+        </ol>
+
+        <!-- Icon Cards-->
+        <div class="row">
+          <div class="col-xl-3 col-sm-6 mb-3">
+            <div class="card text-white bg-primary o-hidden h-100">
+              <div class="card-body">
+                <div class="card-body-icon">
+                  <i class="fas fa-fw fa-folder"></i>
+                </div>
+                <div class="mr-5"><h4 id="vid"></h4> New Videos!</div>
+              </div>
+              <a class="card-footer text-white clearfix small z-1" id="vidC">
+                <span class="float-left">View Details</span>
+                <span class="float-right">
+                  <i class="fas fa-angle-right"></i>
+                </span>
+              </a>
+            </div>
+          </div>
+          <div class="col-xl-3 col-sm-6 mb-3">
+            <div class="card text-white bg-warning o-hidden h-100">
+              <div class="card-body">
+                <div class="card-body-icon">
+                  <i class="fas fa-fw fa-folder"></i>
+                </div>
+                <div class="mr-5"><h4 id="aud"></h4> New Music!</div>
+              </div>
+              <a class="card-footer text-white clearfix small z-1" id="audC">
+                <span class="float-left">View Details</span>
+                <span class="float-right">
+                  <i class="fas fa-angle-right"></i>
+                </span>
+              </a>
+            </div>
+          </div>
+          <div class="col-xl-3 col-sm-6 mb-3">
+            <div class="card text-white bg-success o-hidden h-100">
+              <div class="card-body">
+                <div class="card-body-icon">
+                  <i class="fas fa-fw fa-folder"></i>
+                </div>
+                <div class="mr-5"><h4 id="ebo"></h4> New Books!</div>
+              </div>
+              <a class="card-footer text-white clearfix small z-1" id="eboC">
+                <span class="float-left">View Details</span>
+                <span class="float-right">
+                  <i class="fas fa-angle-right"></i>
+                </span>
+              </a>
+            </div>
+          </div>
+          <div class="col-xl-3 col-sm-6 mb-3">
+            <div class="card text-white bg-danger o-hidden h-100">
+              <div class="card-body">
+                <div class="card-body-icon">
+                  <i class="fas fa-fw fa-life-ring"></i>
+                </div>
+                <div class="mr-5"><h4 id="aut"></h4> New Authors!</div>
+              </div>
+              <a class="card-footer text-white clearfix small z-1" id="autC">
+                <span class="float-left">View Details</span>
+                <span class="float-right">
+                  <i class="fas fa-angle-right"></i>
+                </span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+      
+
+      </div>
+      <!-- /.container-fluid -->
+<div class="card mb-3">
+          <div class="card-header">
+            <i class="fas fa-table"></i>
+            Media Table</div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                  <tr>
+                    <th >Title</th>
+                    <th >Artist</th>
+                  </tr>
+                </thead><tbody>
+                  <div id ="tit"></div>
+                </tbody>
+                <tfoot>
+                  <tr>
+                     <th >Title</th>
+                    <th >Artist</th>                
+                  </tr>
+                </tfoot>
+              
+              </table>
+
+            </div>
+          </div>
+          <div class="card-footer small text-muted">Updated yesterday at 11:59 PM</div>
+        </div>
+      <!-- Sticky Footer -->
+      <footer class="sticky-footer">
+        <div class="container my-auto">
+          <div class="copyright text-center my-auto">
+            <span>Copyright © Your Website 2019</span>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+    <!-- /.content-wrapper -->
+
+  </div>
+  <!-- /#wrapper -->
+
+  <!-- Scroll to Top Button-->
+  <a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+  </a>
+
+  <!-- Logout Modal-->
+  <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+          <button class="close" type="button"  data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+          <a class="btn btn-primary" id="logout" href="login.html" onclick="logout()">Logout</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap core JavaScript-->
+  <script src="vendor/jquery/jquery.min.js"></script>
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+
+  <!-- Core plugin JavaScript-->
+  <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+
+  <!-- Page level plugin JavaScript-->
+  <script src="vendor/chart.js/Chart.min.js"></script>
+  <script src="vendor/datatables/jquery.dataTables.js"></script>
+  <script src="vendor/datatables/dataTables.bootstrap4.js"></script>
+    <script src="https://unpkg.com/bootstrap-table@1.14.1/dist/bootstrap-table.min.js"></script>
+  
+  <!-- Custom scripts for all pages-->
+  <script src="js/sb-admin.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+  <!-- Demo scripts for this page-->
+  <script src="js/demo/datatables-demo.js"></script>
+  <script src="js/demo/chart-area-demo.js"></script>
+  <script>
+    function logout(){
+      window.sessionStorage.removeItem('token');
+    }
+    function countProps(obj) {
+    var count = 0;
+    for (var p in obj) {
+      obj.hasOwnProperty(p) && count++;
+    }
+    return count; 
+}
+    
+    var authorList;
+    var audioList;
+    var videoList
+    var ebookList
+    $('#vidC').on("click",function(){
+      $.ajax({
+      type: "GET",
+      url: "/getAllVideo",
+      success: function(result) {
+        videoList=JSON.parse(result).file_list;
+        document.getElementById("vid").innerHTML=videoList.length;
+        $('#dataTable tr').not(':first').not(':last').remove();
+        var html = '';
+        for(var i = 0; i < videoList.length; i++)
+                    html += '<tr><td>' + videoList[i].name + '</td><td>' + videoList[i].artist_name + '</td></tr>';
+        $('#dataTable tr').first().after(html);
+
+      }
+      });
+    })
+    $('#audC').on("click",function(){
+      $.ajax({
+      type: "GET",
+      url: "/getAllaudio",
+      success: function(result) {
+        audioList=JSON.parse(result).file_list;
+        document.getElementById("aud").innerHTML=audioList.length;
+        $('#dataTable tr').not(':first').not(':last').remove();
+        var html = '';
+        for(var i = 0; i < audioList.length; i++)
+                    html += '<tr><td>' + audioList[i].name + '</td><td>' + audioList[i].artist_name + '</td></tr>';
+        $('#dataTable tr').first().after(html);
+
+      }
+      });
+    })
+    $('#eboC').on("click",function(){
+      $.ajax({
+      type: "GET",
+      url: "/getAllEbook",
+      success: function(result) {
+        ebookList=JSON.parse(result).file_list;
+        document.getElementById("ebo").innerHTML=ebookList.length;
+        $('#dataTable tr').not(':first').not(':last').remove();
+        var html = '';
+        for(var i = 0; i < ebookList.length; i++)
+                    html += '<tr><td>' + ebookList[i].name + '</td><td>' + ebookList[i].artist_name + '</td></tr>';
+        $('#dataTable tr').first().after(html);
+
+      }
+      });
+    });
+    $('#autC').on("click",function(){
+      $.ajax({
+      type: "GET",
+      url: "/getAllAuthor",
+      success: function(result) {
+        authorList=JSON.parse(result).file_list;
+        document.getElementById("aut").innerHTML=authorList.length;
+        $('#dataTable tr').not(':first').not(':last').remove();
+        var html = '';
+        for(var i = 0; i < authorList.length; i++)
+                    html += '<tr><td>' + authorList[i].id + '</td><td>' + authorList[i].name + '</td></tr>';
+        $('#dataTable tr').first().after(html);
+        document.getElementById("tit").innerHTML="ID"
+
+      }
+      });
+    })
+    $.ajax({
+    type: "GET",
+    url: "/getAllVideo",
+    success: function(result) {
+      videoList=JSON.parse(result).file_list;
+      document.getElementById("vid").innerHTML=videoList.length;
+    }
+    });
+  
+    $.ajax({
+    type: "GET",
+    url: "/getAllAudio",
+    success: function(result) {
+      audioList=JSON.parse(result).file_list;
+      document.getElementById("aud").innerHTML=audioList.length;
+      console.log(JSON.stringify(audioList))
+    }
+
+    
+    });
+    $.ajax({
+    type: "GET",
+    url: "/getAllEbook",
+    success: function(result) {
+      ebookList=JSON.parse(result).file_list;
+      document.getElementById("ebo").innerHTML=ebookList.length;
+
+    }
+    });
+    $.ajax({
+    type: "GET",
+    url: "/getAllAuthor",
+    success: function(result) {
+      authorList=JSON.parse(result).file_list;
+      document.getElementById("aut").innerHTML=authorList.length;
+      
+    }
+    });
+
+    
+// $('#dataTableT tr').not(':first').not(':last').remove();
+// var html = '';
+// for(var i = 0; i < document.getElementById("aud").innerHTML; i++)
+//             html += '<tr><td>' + data.d[i].name + 
+//                     '</td><td>' + data.d[i].artist_name + '</td></tr>';
+// $('#dataTable tr').first().after(html);
+
+
+  </script>
+
+</body>
+
+</html>

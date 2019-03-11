@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>3O Media Library</title>
+
+  <!-- Custom fonts for this template-->
+  <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+
+  <!-- Page level plugin CSS-->
+  <link href="vendor/datatables/dataTables.bootstrap4.css" rel="stylesheet">
+
+  <!-- Custom styles for this template-->
+  <link href="css/sb-admin.css" rel="stylesheet">
+  
+</head>
+
+<body id="page-top">
+
+  <nav class="navbar navbar-expand navbar-dark bg-dark static-top">
+
+    <a class="navbar-brand mr-1" href="index.html">3O Media Library</a>
+
+    <button class="btn btn-link btn-sm text-white order-1 order-sm-0" id="sidebarToggle" href="#">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Navbar Search -->
+    <form class="d-none d-md-inline-block form-inline ml-auto mr-0 mr-md-3 my-2 my-md-0">
+      <div class="input-group">
+        <input type="text" class="form-control" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2">
+        <div class="input-group-append">
+          <button class="btn btn-primary" type="button">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Navbar -->
+    <
+      <li class="nav-item dropdown no-arrow">
+        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fas fa-user-circle fa-fw"></i>
+        </a>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+          <a class="dropdown-item" href="#">Settings</a>
+          <a class="dropdown-item" href="#">Activity Log</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">Logout</a>
+        </div>
+      </li>
+    </ul>
+
+  </nav>
+
+  <div id="wrapper">
+
+    <!-- Sidebar -->
+    <ul class="sidebar navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="index.html">
+          <i class="fas fa-fw fa-tachometer-alt"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="pagesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fas fa-fw fa-folder"></i>
+          <span>Pages</span>
+        </a>
+        <div class="dropdown-menu" aria-labelledby="pagesDropdown">
+          <h6 class="dropdown-header">Login Screens:</h6>
+          <a class="dropdown-item" href="login.html">Login</a>
+          <a class="dropdown-item" href="register.html">Register</a>
+          <a class="dropdown-item" href="forgot-password.html">Forgot Password</a>
+          <div class="dropdown-divider"></div>
+          <h6 class="dropdown-header">Other Pages:</h6>
+          <a class="dropdown-item" href="404.html">404 Page</a>
+          <a class="dropdown-item" href="blank.html">Blank Page</a>
+        </div>
+      </li>
+      <li class="nav-item active">
+        <a class="nav-link" href="charts.html">
+          <i class="fas fa-fw fa-chart-area"></i>
+          <span>Add Media</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="remote.html">
+          <i class="fas fa-fw fa-table"></i>
+          <span>Remote streaming</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="tables.html">
+          <i class="fas fa-fw fa-table"></i>
+          <span>Summary</span></a>
+      </li>
+    </ul>
+
+    <div id="content-wrapper">
+
+      <div class="container-fluid">
+
+        <!-- Breadcrumbs-->
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a href="#">Dashboard</a>
+          </li>
+          <li class="breadcrumb-item active">Add Media</li>
+        </ol>
+
+        <!-- Area Chart Example-->
+       <!--Card-->
+ <style>
+  #progress_bar {
+    margin: 10px 0;
+    padding: 3px;
+    border: 1px solid #000;
+    font-size: 14px;
+    clear: both;
+    opacity: 0;
+    -moz-transition: opacity 1s linear;
+    -o-transition: opacity 1s linear;
+    -webkit-transition: opacity 1s linear;
+  }
+  #progress_bar.loading {
+    opacity: 1.0;
+  }
+  #progress_bar .percent {
+    background-color: #99ccff;
+    height: auto;
+    width: 0;
+  }
+</style>
+  <style>
+  #progress_bar1 {
+    margin: 10px 0;
+    padding: 3px;
+    border: 1px solid #000;
+    font-size: 14px;
+    clear: both;
+    opacity: 0;
+    -moz-transition: opacity 1s linear;
+    -o-transition: opacity 1s linear;
+    -webkit-transition: opacity 1s linear;
+  }
+  #progress_bar1.loading1 {
+    opacity: 1.0;
+  }
+  #progress_bar1 .percent1 {
+    background-color: #9945ff;
+    height: auto;
+    width: 0;
+  }
+</style> <style>
+  #progress_bar2 {
+    margin: 10px 0;
+    padding: 3px;
+    border: 1px solid #000;
+    font-size: 14px;
+    clear: both;
+    opacity: 0;
+    -moz-transition: opacity 1s linear;
+    -o-transition: opacity 1s linear;
+    -webkit-transition: opacity 1s linear;
+  }
+  #progress_bar2.loading2 {
+    opacity: 1.0;
+  }
+  #progress_bar2.percent2 {
+    background-color: #99ccff;
+    height: auto;
+    width: 0;
+  }
+</style>   
+<div class="card indigo text-center z-depth-2 light-version py-4 px-5">
+
+  Audio<hr class="w-100 my-8">
+
+  <form class="md-form"  method="POST" enctype="multipart/form-data" action="/addAudio" >
+    <div class="form-label-group" align="center" >
+      <div class="btn btn-secondary btn-sm float-left" >
+        <span>Choose Audio file<i class="fas fa-cloud-upload-alt ml-3" aria-hidden="true"></i></span>
+        <input type="file" id="files" name="file" accept="audio/*">
+      </div>
+
+    </div>
+
+    <div class="btn btn-secondary float-right">
+      <button class="btn btn-primary btn-sm float-left" type="submit" name="addAudio" >Add Audio</button>
+      <button class="btn btn-primary btn-sm float-left" type="Reset" name="cancel"  onclick="abortRead();" >Cancel</button>
+    </div>
+    <div id="progress_bar"><div class="percent">0%</div></div>
+
+    </form>
+
+  <hr class="w-100 my-4">Video<hr class="w-100 my-8">
+
+  <form class="md-form" method="POST" enctype="multipart/form-data" action="/addVideo" >
+    <div class="form-label-group" align="center" >
+      <div class="btn btn-secondary btn-sm float-left" >
+        <span>Choose Video file<i class="fas fa-cloud-upload-alt ml-3" aria-hidden="true"></i></span>
+        <input type="file" id="files1" name="file" accept="video/*">
+      </div>
+      
+    </div>
+
+    <div class="btn btn-secondary float-right">
+      <button class="btn btn-primary btn-sm float-left" type="submit"  name="submit" >Add Video</button>
+      <button class="btn btn-primary btn-sm float-left" type="Reset" name="cancel1"  onclick="abortRead1();" >Cancel</button>
+    </div>
+        <div id="progress_bar1"><div class="percent1">0%</div></div>
+
+    </form>
+  <hr class="w-100 my-4">Ebook<hr class="w-100 my-8">
+
+<form class="md-form" method="POST" enctype="multipart/form-data" action="/addEbook" >
+    <div class="form-label-group" align="center" >
+      <div class="btn btn-secondary btn-sm float-left" >
+        <span>Choose Ebook file<i class="fas fa-cloud-upload-alt ml-3" aria-hidden="true"></i></span>
+        <input type="file" id="files2" name="file" accept="file_extension">
+      </div>
+      
+    </div>
+
+    <div class="btn btn-secondary float-right">
+      <button class="btn btn-primary btn-sm float-left" type="submit"  name="submit" >Add Ebook</button>
+      <button class="btn btn-primary btn-sm float-left" type="Reset" name="cancel2"  onclick="abortRead2();" >Cancel</button>
+    </div>
+    <div id="progress_bar2"><div class="percent2">0%</div></div>
+
+    </form>
+</div>
+<!--/.Card-->
+<!--Card-->
+
+<!--/.Card-->
+
+      <!-- /.container-fluid -->
+
+      <!-- Sticky Footer -->
+      <footer class="sticky-footer">
+        <div class="container my-auto">
+          <div class="copyright text-center my-auto">
+            <span>Copyright © 3O Media Library 2019</span>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+    <!-- /.content-wrapper -->
+
+  </div>
+  <!-- /#wrapper -->
+
+  <!-- Scroll to Top Button-->
+  <a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+  </a>
+
+  <!-- Logout Modal-->
+  <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+          <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+          <a class="btn btn-primary" href="login.html" onclick="logout()">Logout</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap core JavaScript-->
+  <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/jquery/jquery.js"></script>
+
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Core plugin JavaScript-->
+  <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+
+  <!-- Page level plugin JavaScript-->
+  <script src="vendor/chart.js/Chart.min.js"></script>
+
+  <!-- Custom scripts for all pages-->
+  <script src="js/sb-admin.min.js"></script>
+
+  <!-- Demo scripts for this page-->
+  <script src="js/demo/chart-area-demo.js"></script>
+  <script src="js/demo/chart-bar-demo.js"></script>
+  <script src="js/demo/chart-pie-demo.js"></script>
+  <script type="text/javascript">    
+    $('button[name=cancel]').hide();
+    $('button[name=cancel1]').hide();
+    $('button[name=cancel2]').hide();
+    function logout(){
+      window.sessionStorage.removeItem('token');
+
+    }
+</script>
+<script>
+  var reader;
+  var progress = document.querySelector('.percent');
+  $('button[name=cancel]')
+  .click(
+     function ()
+     {
+         $(this).hide();
+     }
+     )
+  function abortRead() {
+    reader.abort();
+  }
+
+  function errorHandler(evt) {
+    switch(evt.target.error.code) {
+      case evt.target.error.NOT_FOUND_ERR:
+        alert('File Not Found!');
+        break;
+      case evt.target.error.NOT_READABLE_ERR:
+        alert('File is not readable');
+        break;
+      case evt.target.error.ABORT_ERR:
+        break; // noop
+      default:
+        alert('An error occurred reading this file.');
+    };
+  }
+
+  function updateProgress(evt) {
+    // evt is an ProgressEvent.
+    $('button[name=cancel]').show();
+
+    if (evt.lengthComputable) {
+      var percentLoaded = Math.round((evt.loaded / evt.total) * 100);
+      // Increase the progress bar length.
+      if (percentLoaded < 100) {
+        progress.style.width = percentLoaded + '%';
+        progress.textContent = percentLoaded + '%';
+      }
+    }
+  }
+
+  function handleFileSelect(evt) {
+    // Reset progress indicator on new file selection.
+    progress.style.width = '0%';
+    progress.textContent = '0%';
+
+    reader = new FileReader();
+    reader.onerror = errorHandler;
+    reader.onprogress = updateProgress;
+
+    reader.onabort = function(e) {
+      alert('File read cancelled');
+    };
+    reader.onloadstart = function(e) {
+      
+      document.getElementById('progress_bar').className = 'loading';
+    };
+    reader.onload = function(e) {
+      // Ensure that the progress bar displays 100% at the end.
+      progress.style.width = '100%';
+      progress.textContent = '100%';
+      setTimeout("document.getElementById('progress_bar').className='';", 2000);
+    }
+    // Read in the image file as a binary string.
+    reader.readAsBinaryString(evt.target.files[0]);
+  }
+  document.getElementById('files').addEventListener('change', handleFileSelect, false);
+</script>  
+<script>
+  var reader1;
+  var progress1 = document.querySelector('.percent1');
+  $('button[name=cancel1]')
+  .click(
+     function ()
+     {
+         $(this).hide();
+     }
+     )
+  function abortRead1() {
+    reader1.abort();
+  }
+
+  function errorHandler1(evt) {
+    switch(evt.target.error.code) {
+      case evt.target.error.NOT_FOUND_ERR:
+        alert('File Not Found!');
+        break;
+      case evt.target.error.NOT_READABLE_ERR:
+        alert('File is not readable');
+        break;
+      case evt.target.error.ABORT_ERR:
+        break; // noop
+      default:
+        alert('An error occurred reading this file.');
+    };
+  }
+
+  function updateProgress1(evt) {
+    // evt is an ProgressEvent.
+    $('button[name=cancel1]').show();
+
+    if (evt.lengthComputable) {
+      var percentLoaded = Math.round((evt.loaded / evt.total) * 100);
+      // Increase the progress bar length.
+      if (percentLoaded < 100) {
+        progress1.style.width = percentLoaded + '%';
+        progress1.textContent = percentLoaded + '%';
+      }
+    }
+  }
+
+  function handleFileSelect1(evt) {
+    // Reset progress indicator on new file selection.
+    progress1.style.width = '0%';
+    progress1.textContent = '0%';
+
+    reader1 = new FileReader();
+    reader1.onerror = errorHandler1;
+    reader1.onprogress = updateProgress1;
+
+    reader1.onabort = function(e) {
+      alert('File read cancelled');
+    };
+    reader1.onloadstart = function(e) {
+      
+      document.getElementById('progress_bar1').className = 'loading1';
+    };
+    reader1.onload = function(e) {
+      // Ensure that the progress bar displays 100% at the end.
+      progress1.style.width = '100%';
+      progress1.textContent = '100%';
+      setTimeout("document.getElementById('progress_bar1').className='';", 2000);
+    }
+    // Read in the image file as a binary string.
+    reader1.readAsBinaryString(evt.target.files[0]);
+  }
+  document.getElementById('files1').addEventListener('change', handleFileSelect1, false);
+</script>  
+<script>
+  var reader2;
+  var progress2 = document.querySelector('.percent2');
+  $('button[name=cancel2]')
+  .click(
+     function ()
+     {
+         $(this).hide();
+     }
+     )
+  function abortRead2() {
+    reader2.abort();
+  }
+
+  function errorHandler2(evt) {
+    switch(evt.target.error.code) {
+      case evt.target.error.NOT_FOUND_ERR:
+        alert('File Not Found!');
+        break;
+      case evt.target.error.NOT_READABLE_ERR:
+        alert('File is not readable');
+        break;
+      case evt.target.error.ABORT_ERR:
+        break; // noop
+      default:
+        alert('An error occurred reading this file.');
+    };
+  }
+
+  function updateProgress2(evt) {
+    // evt is an ProgressEvent.
+    $('button[name=cancel2]').show();
+
+    if (evt.lengthComputable) {
+      var percentLoaded = Math.round((evt.loaded / evt.total) * 100);
+      // Increase the progress bar length.
+      if (percentLoaded < 100) {
+        progress2.style.width = percentLoaded + '%';
+        progress2.textContent = percentLoaded + '%';
+      }
+    }
+  }
+
+  function handleFileSelect2(evt) {
+    // Reset progress indicator on new file selection.
+    progress2.style.width = '0%';
+    progress2.textContent = '0%';
+
+    reader2 = new FileReader();
+    reader2.onerror = errorHandler2;
+    reader2.onprogress = updateProgress2;
+
+    reader2.onabort = function(e) {
+      alert('File read cancelled');
+    };
+    reader2.onloadstart = function(e) {
+      
+      document.getElementById('progress_bar2').className = 'loading2';
+    };
+    reader2.onload = function(e) {
+      // Ensure that the progress bar displays 200% at the end.
+      progress2.style.width = '100%';
+      progress2.textContent = '100%';
+      setTimeout("document.getElementById('progress_bar2').className='';", 2000);
+    }
+    // Read in the image file as a binary string.
+    reader2.readAsBinaryString(evt.target.files[0]);
+  }
+  document.getElementById('files2').addEventListener('change', handleFileSelect2, false);
+</script>  
+<!-- ll ebook only-->
+
+</body>
+
+</html>

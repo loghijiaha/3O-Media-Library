@@ -201,7 +201,6 @@ class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                             MainActivity.videoView.setVisibility(View.VISIBLE);
                             MainActivity.videoView.setMediaController(mediaController);
                             MainActivity.videoView.setVideoPath(mItem.media.getMediaPath());
-                            MainActivity.videoView.start();
 
                             layout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
                         }else{

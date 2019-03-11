@@ -2,6 +2,7 @@ package com.example.loghi.a3o_media_player;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -14,9 +15,11 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
+import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -31,6 +34,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.MenuInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -45,25 +49,46 @@ import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.SearchView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
+import com.blikoon.qrcodescanner.QrCodeActivity;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import javax.net.ssl.HttpsURLConnection;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+    private static final int REQUEST_CODE_QR_SCAN = 101;
+    private static final int REQUEST_CODE_LOGIN= 102;
+
+    private final String LOGTAG = "QRCScanner-MainActivity";
     private MediaPlayer mediaPlayer;
     public static TextView songName;
     private double timeElapsed = 0, finalTime = 0;
@@ -75,6 +100,7 @@ public class MainActivity extends AppCompatActivity
     public static ImageButton forwardBtn;
     public static ImageButton rewindBtn;
     public static ImageView mp3Image;
+    private static String serverURL;
     private MediaMetadataRetriever mmr;
     private VideoView video;
     private RecyclerView recyclerView;
@@ -88,6 +114,7 @@ public class MainActivity extends AppCompatActivity
     public SlidingUpPanelLayout layout;
     private MediaAdapter mediaAdapter;
     public static VideoView videoView;
+    private String changer;
 
     public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 123;
     private static final  String TAG = "MainActivity";
@@ -165,7 +192,16 @@ public class MainActivity extends AppCompatActivity
         return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics()));
     }
 
-//    public class GridSpacingItemDecoration extends RecyclerView.ItemDecoration {
+
+    public static String getServerURL() {
+        return serverURL;
+    }
+
+    public static void setServerURL(String serverURL) {
+        MainActivity.serverURL = serverURL;
+    }
+
+    //    public class GridSpacingItemDecoration extends RecyclerView.ItemDecoration {
 //
 //        private int spanCount;
 //        private int spacing;
@@ -199,6 +235,183 @@ public class MainActivity extends AppCompatActivity
 //            }
 //        }
 //    }
+@Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+
+            case (REQUEST_CODE_QR_SCAN): {
+                if(data==null)
+                    return;
+
+
+                //Getting the passed result
+                String result = data.getStringExtra("com.blikoon.qrcodescanner.got_qr_scan_relult");
+                TokenSaver tk = new TokenSaver();
+                tk.setIP(this,result);
+                Log.d(LOGTAG,"Have scan result in your app activity :"+ result);
+                AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+                alertDialog.setTitle("Scan result");
+                alertDialog.setMessage("Code scanned successfully");
+                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                                Intent i = new Intent(MainActivity.this,LoginActivity.class);
+                                startActivityForResult(i,REQUEST_CODE_LOGIN);
+                            }
+                        });
+                alertDialog.show();
+            }
+            break;
+
+            case (REQUEST_CODE_LOGIN): {
+                TokenSaver tk = new TokenSaver();
+                String token=tk.getToken(this,"token");
+                Log.i("Login succesfull",token);
+                Log.i("Login succesfull","hellllllllllllllo");
+            }
+            break;
+        }
+
+        if(resultCode != Activity.RESULT_OK)
+        {
+            Log.d(LOGTAG,"COULD NOT GET A GOOD RESULT.");
+            if(data==null)
+                return;
+            //Getting the passed result
+            String result = data.getStringExtra("com.blikoon.qrcodescanner.error_decoding_image");
+            if( result!=null)
+            {
+                setServerURL(result);
+                AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+                alertDialog.setTitle("Scan Error");
+                alertDialog.setMessage("QR Code could not be scanned");
+                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+                alertDialog.show();
+            }
+            return;
+
+        }
+//    if(requestCode == REQUEST_CODE_QR_SCAN)
+//    {
+//
+//
+//    }
+//    if(requestCode == REQUEST_CODE_LOGIN){
+//
+//
+//    }
+}    private String getPostDataString(HashMap<String, String> params) throws UnsupportedEncodingException {
+        StringBuilder result = new StringBuilder();
+        boolean first = true;
+        for(Map.Entry<String, String> entry : params.entrySet()){
+            if (first)
+                first = false;
+            else
+                result.append("&");
+
+            result.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
+            result.append("=");
+            result.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
+        }
+
+        return result.toString();
+    }
+
+
+    public String  performPostCall(String requestURL,
+                                   HashMap<String, String> postDataParams) {
+
+        URL url;
+        String response = "";
+        try {
+            url = new URL(requestURL);
+
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setReadTimeout(15000);
+            conn.setConnectTimeout(15000);
+            conn.setRequestMethod("POST");
+            conn.setDoInput(true);
+            conn.setDoOutput(true);
+
+
+            OutputStream os = conn.getOutputStream();
+            BufferedWriter writer = new BufferedWriter(
+                    new OutputStreamWriter(os, "UTF-8"));
+            writer.write(getPostDataString(postDataParams));
+
+            writer.flush();
+            writer.close();
+            os.close();
+            int responseCode=conn.getResponseCode();
+
+            if (responseCode == HttpsURLConnection.HTTP_OK) {
+                String line;
+                BufferedReader br=new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                while ((line=br.readLine()) != null) {
+                    response+=line;
+                }
+            }
+            else {
+                response="";
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return response;
+    }
+
+    public String  performGetCall(String requestURL,
+                                   HashMap<String, String> postDataParams) {
+
+        URL url;
+        String response = "";
+        try {
+            url = new URL(requestURL);
+
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setReadTimeout(15000);
+            conn.setConnectTimeout(15000);
+            conn.setRequestMethod("GET");
+            conn.setDoInput(true);
+            conn.setDoOutput(true);
+
+
+            OutputStream os = conn.getOutputStream();
+            BufferedWriter writer = new BufferedWriter(
+                    new OutputStreamWriter(os, "UTF-8"));
+            writer.write(getPostDataString(postDataParams));
+
+            writer.flush();
+            writer.close();
+            os.close();
+            int responseCode=conn.getResponseCode();
+
+            if (responseCode == HttpsURLConnection.HTTP_OK) {
+                String line;
+                BufferedReader br=new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                while ((line=br.readLine()) != null) {
+                    response+=line;
+                }
+            }
+            else {
+                response="";
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return response;
+    }
+
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -212,19 +425,63 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onPostResume() {
         super.onPostResume();
-        if (checkPermissionREAD_EXTERNAL_STORAGE(this)) {
-            getsongList();
-            getmovieList();
-            getebookList();
-        }
+
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
+        // Inflate the menu; this adds items to the action bar if it is present
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.search_menu, menu);
+        final MenuItem searchItem = menu.findItem(R.id.search);
+
+        SearchManager searchManager = (SearchManager) MainActivity.this.getSystemService(Context.SEARCH_SERVICE);
+
+        final SearchView searchView;
+        if (searchItem != null) {
+            searchView = (SearchView) searchItem.getActionView();
+            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+                    // Toast like print
+                    Log.i("Query ", "SearchOnQueryTextSubmit: " + query);
+                    ArrayList searchL = new ArrayList();
+                    try {
+                        ArrayList<Media> cat = catagory.get(query);
+                        cat.addAll(catagory1.get(query)==null?new ArrayList<Media>():catagory1.get(query));
+                        cat.addAll(catagory2.get(query)==null?new ArrayList<Media>():catagory2.get(query));
+                        if(cat==null){
+                            searchL.add(new Header("No Item found"));
+                        }else {
+                            searchL.add(new Header(query));
+                            for (Media media : cat) {
+                                searchL.add(media);
+                            }
+
+                        }
+                    }catch (Exception e){
+                        searchL.add(new Header("No Item found"));
+
+                    }
+
+                    mediaAdapter.setMediaList(searchL);
+                    if( ! searchView.isIconified()) {
+                        searchView.setIconified(true);
+                    }
+                    searchItem.collapseActionView();
+                    return false;
+                }
+                @Override
+                public boolean onQueryTextChange(String s) {
+                    // UserFeedback.show( "SearchOnQueryTextChanged: " + s);
+                    return false;
+                }
+            });
+        }
+
+        return super.onCreateOptionsMenu(menu);
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -253,11 +510,49 @@ public class MainActivity extends AppCompatActivity
             mediaAdapter.setMediaList(songList);
             Toast.makeText(this, "Songs", Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_movie) {
-            mediaAdapter.setMediaList(movieList);
             Toast.makeText(this, "Videos", Toast.LENGTH_SHORT).show();
+            mediaAdapter.setMediaList(movieList);
+
         } else if (id == R.id.nav_share) {
+            try {
+                mediaPlayer.release();
+                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                mediaPlayer.setDataSource(this, Uri.parse("http://10.10.6.161:8012/playAudio?path=des.mp3"));
+                mediaPlayer.prepareAsync();
+
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+            } catch (SecurityException e) {
+                e.printStackTrace();
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
         } else if (id == R.id.nav_send) {
+            HashMap dataParam = new HashMap<String, String>();
+            String file= performGetCall("http://10.10.6.161:8012/getAllAudio",dataParam);
+            Log.i("get main respobnse somf",file);
+
+            if (!file.isEmpty()){
+                JSONObject main  = null;
+                try {
+                    main = new JSONObject(file);
+                    String file1 = main.getString("file_list");
+                    Log.i("get all somf",file1);
+                    JSONObject fileList = new JSONObject(file1);
+                    songList.clear();
+                    songList.add(new Media(fileList.getLong("id"),fileList.getString("name"),fileList.getString("artist_name"),fileList.getString("path"),"audio/mpeg"));
+                    mediaAdapter.setMediaList(songList);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }else if (id == R.id.nav_remote) {
+            Intent i = new Intent(MainActivity.this,QrCodeActivity.class);
+            startActivityForResult( i,REQUEST_CODE_QR_SCAN);
 
         }
 
@@ -279,6 +574,37 @@ public class MainActivity extends AppCompatActivity
 //            startActivity(playerIntent);
 //        }
 //    }
+    private void startHeavyProcessing() {
+        new LongOperation().execute("");
+    }
+
+    private class LongOperation extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... params) {
+            //some heavy processing resulting in a Data String
+            try {
+                if (checkPermissionREAD_EXTERNAL_STORAGE(MainActivity.this)) {
+                    getsongList();
+                    getebookList();
+                    getmovieList();
+                }
+
+            } catch (Exception e) {
+                Thread.interrupted();
+            }
+
+            return "whatever result you have";
+        }
+        @Override
+        protected void onPreExecute() {
+
+        }
+        @Override
+        protected void onPostExecute(String result) {
+
+        }
+    }
     public void initializeViews(){
         songName = (TextView) findViewById(R.id.songName);
         mediaPlayer = MediaPlayer.create(this, R.raw.sample);
@@ -301,6 +627,11 @@ public class MainActivity extends AppCompatActivity
         catagory = new HashMap<>();
         catagory1 = new HashMap<>();
         catagory2 =new HashMap<>();
+        if (checkPermissionREAD_EXTERNAL_STORAGE(MainActivity.this)) {
+            getsongList();
+        }
+        Toast.makeText(MainActivity.this,"Loading all contents",Toast.LENGTH_LONG).show();
+        startHeavyProcessing();
 
     }
 
@@ -321,6 +652,7 @@ public class MainActivity extends AppCompatActivity
         finalTime = mediaPlayer.getDuration();
         playBtn.setVisibility(View.INVISIBLE);
         pauseBtn.setVisibility(View.VISIBLE);
+
     }
 
     public void forward(View view) {

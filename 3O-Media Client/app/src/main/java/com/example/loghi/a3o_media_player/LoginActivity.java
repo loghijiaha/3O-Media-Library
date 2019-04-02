@@ -4,10 +4,12 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.app.LoaderManager.LoaderCallbacks;
 
@@ -368,7 +370,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 HashMap dataParam = new HashMap<String, String>();
                 dataParam.put("user_name",mEmail);
                 dataParam.put("password",mPassword);
-                token=performPostCall("http://10.10.6.161:8012/login",dataParam);
+                token=performPostCall("http://"+TokenSaver.getIP(LoginActivity.this)+":8012/login",dataParam);
                 Log.i("Login response",token);
             } catch (Exception e) {
                 System.out.println(e.getMessage());
@@ -383,18 +385,49 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 try {
                     main = new JSONObject(token);
                     token = main.getString("token");
-                    TokenSaver localSaver = new TokenSaver();
-                    localSaver.setToken(LoginActivity.this,token);
+                    String message = (String) main.get("message");
+                    if(message == "Wrong Name"){
+                        AlertDialog alertDialog = new AlertDialog.Builder(LoginActivity.this).create();
+                        alertDialog.setTitle("Login");
+                        alertDialog.setMessage("Login Failed");
+                        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.dismiss();
+                                        finish();
+                                    }
+                                });
+                        alertDialog.show();
+                    }else if(message == "Wrong Password"){
+                        AlertDialog alertDialog = new AlertDialog.Builder(LoginActivity.this).create();
+                        alertDialog.setTitle("Login");
+                        alertDialog.setMessage("Login Failed");
+                        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.dismiss();
+                                        finish();
+                                    }
+                                });
+                        alertDialog.show();
+                    }else{
+                        TokenSaver localSaver = new TokenSaver();
+                        localSaver.setToken(LoginActivity.this,token);
+                        Intent resultIntent = new Intent();
+                        resultIntent.putExtra("token", token);
+
+                        setResult(Activity.RESULT_OK, resultIntent);
+                    }
+
+                    finish();
 
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-            }
-            Intent resultIntent = new Intent();
-            resultIntent.putExtra("token", token);
+            }else{
 
-            setResult(Activity.RESULT_OK, resultIntent);
-            finish();
+            }
+
         }
 
         @Override

@@ -8,9 +8,9 @@ public class TokenSaver {
     private final static String TOKEN_KEY = "com.example.loghi.a3o_media_player.TOKEN_KEY";
     private final static String IP = "com.example.loghi.a3o_media_player.IP";
 
-    public static String getToken(Context c, String token) {
+    public static String getToken(Context c) {
         SharedPreferences prefs = c.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
-        return prefs.getString(TOKEN_KEY, "");
+        return prefs.getString(TOKEN_KEY, null);
     }
 
     public static void setToken(Context c, String token) {
@@ -22,12 +22,18 @@ public class TokenSaver {
     public static void setIP(Context c,String ip) {
         SharedPreferences prefs = c.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(IP, ip);
+        editor.putString(IP, ip);editor.apply();
         editor.apply();
     }
-    public static String getIP(Context c, String ip) {
+    public static String getIP(Context c) {
         SharedPreferences prefs = c.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
-        return prefs.getString(IP, "");
+        return prefs.getString(IP, null);
+    }
+    public static void clear(Context c){
+        SharedPreferences pref = c.getSharedPreferences(TOKEN_KEY,0);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.clear().commit();
+
     }
 
 }

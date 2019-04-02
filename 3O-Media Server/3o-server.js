@@ -194,10 +194,18 @@ app.post('/login',(req,res)=>{
     for(var user of users){
       if(user.user_name!=req.body.user_name){
           message="Wrong Name";
+          res.status(403).json({
+              message
+              });
+              break;
+
+
       }else{
           if(user.password!=req.body.password){
               message="Wrong Password";
-              
+              res.status(403).json({
+              message
+              });
               
               break;
           }
@@ -217,13 +225,6 @@ app.post('/login',(req,res)=>{
           }
       }
     }
-    // if(token){
-        
-
-    // }
-    // else{
-        
-    // }
 });
 
 app.use('/remote',(req, res, next)=>{

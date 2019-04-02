@@ -36,7 +36,7 @@ exports.addEbook = function(req,res){
       db.all('SELECT * FROM Ebook',[],function(error,rows,fields){
         var nameL=[]
         rows.forEach((row)=>{
-          nameL.push(row.path)
+          nameL.push(row.path);
         });
         console.log(nameL);
         if(error){
@@ -88,7 +88,9 @@ exports.getAllEbook = function(req,res){
       console.log(row);
     });
     
-  res.send(JSON.stringify({file_list:file_list}));
+   res.status(200).send({
+              file_list
+              });
   }
   });
 }

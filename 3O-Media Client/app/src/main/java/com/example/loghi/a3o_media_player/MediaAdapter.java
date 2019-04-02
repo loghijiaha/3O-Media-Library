@@ -142,7 +142,9 @@ class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             // loading media cover using Glide library
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            media.getImage().compress(Bitmap.CompressFormat.PNG, 100, stream);
+            if(media.getImage()!=null) {
+                media.getImage().compress(Bitmap.CompressFormat.PNG, 100, stream);
+            }
             Glide.with(mContext)
                     .load(stream.toByteArray())
                     .asBitmap()
@@ -174,10 +176,22 @@ class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                                 mItem.media.getId());
                         if(mItem.media.getMimeType().startsWith("audio")) {
                             MainActivity.videoView.setVisibility(View.INVISIBLE);
-                            mediaPlayer.setDataSource(mContext, trackUri);
+                            try {
+                                mediaPlayer.setDataSource(mContext, trackUri);
+                            }catch (Exception ex){
+
+                            }
+                            try{
+
+                                TokenSaver tk = new TokenSaver();
+                                Uri url = Uri.parse("http://10.10.5.166:8012/playAudio?path=Maaris Aanandhi - SenSongsmp3.Co.mp3");
+                            }catch (Exception e){
+
+                            }
+
+
                             MainActivity.songName.setText(media.getTitle());
                             MainActivity.mp3Image.setVisibility(View.VISIBLE);
-
                             MainActivity.mp3Image.setImageBitmap(media.getImage());
                             MainActivity.playBtn.setVisibility(View.VISIBLE);
                             MainActivity.pauseBtn.setVisibility(View.VISIBLE);
@@ -206,7 +220,7 @@ class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                         }else{
 
                         }
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         Log.e("MUSIC SERVICE", "Error setting data source", e);                    }
                 }
             });

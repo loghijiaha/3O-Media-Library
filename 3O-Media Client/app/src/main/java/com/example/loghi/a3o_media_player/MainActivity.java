@@ -3,18 +3,16 @@ package com.example.loghi.a3o_media_player;
 import android.Manifest;
 import android.app.Activity;
 import android.app.SearchManager;
-import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Rect;
 import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
@@ -22,16 +20,15 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Base64;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.MenuInflater;
@@ -44,11 +41,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.GridLayout;
-import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -58,27 +52,24 @@ import android.widget.VideoView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.blikoon.qrcodescanner.QrCodeActivity;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -114,6 +105,7 @@ public class MainActivity extends AppCompatActivity
     public SlidingUpPanelLayout layout;
     private MediaAdapter mediaAdapter;
     public static VideoView videoView;
+    private static boolean remoteLoaded=false;
     private String changer;
 
     public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 123;
@@ -152,6 +144,324 @@ public class MainActivity extends AppCompatActivity
 //
 //        }
 //    }
+class JSONAsyncTaskAud extends AsyncTask<String, Void, String> {
+
+    @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
+
+    }
+
+    @Override
+    protected String doInBackground(String... urls) {
+        HttpURLConnection urlConnection = null;
+        BufferedReader reader = null;
+
+        // Will contain the raw JSON response as a string.
+        String forecastJsonStr = null;
+
+        try {
+            // Construct the URL for the OpenWeatherMap query
+            // Possible parameters are avaiable at OWM's forecast API page, at
+            // http://openweathermap.org/API#forecast
+
+            URL url = new URL(urls[0]);
+
+            // Create the request to OpenWeatherMap, and open the connection
+            urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setRequestMethod("GET");
+            urlConnection.connect();
+
+            // Read the input stream into a String
+            InputStream inputStream = urlConnection.getInputStream();
+            StringBuffer buffer = new StringBuffer();
+            if (inputStream == null) {
+                // Nothing to do.
+                return null;
+            }
+            reader = new BufferedReader(new InputStreamReader(inputStream));
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
+                // But it does make debugging a *lot* easier if you print out the completed
+                // buffer for debugging.
+                buffer.append(line + "\n");
+            }
+
+            if (buffer.length() == 0) {
+                // Stream was empty.  No point in parsing.
+                return null;
+            }
+            forecastJsonStr = buffer.toString();
+            return forecastJsonStr;
+        } catch (IOException e) {
+            Log.e("PlaceholderFragment", "Error ", e);
+            // If the code didn't successfully get the weather data, there's no point in attemping
+            // to parse it.
+            Toast.makeText(MainActivity.this, "Connection Failed", Toast.LENGTH_SHORT).show();
+
+            return null;
+        } finally{
+            if (urlConnection != null) {
+                urlConnection.disconnect();
+            }
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (final IOException e) {
+                    Log.e("PlaceholderFragment", "Error closing stream", e);
+                }
+            }
+        }
+    }
+    private Bitmap getBitmapFromString(String jsonString) {
+        /*
+         * This Function converts the String back to Bitmap
+         * */
+        byte[] decodedString = Base64.decode(jsonString, Base64.DEFAULT);
+        Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+        return decodedByte;
+    }
+    protected void onPostExecute(String result) {
+        Log.i("Resulr out",result);
+        try {
+            JSONObject fileLists= new JSONObject(result);
+            Log.i("filelist",fileLists.toString());
+            JSONArray j = new JSONArray(fileLists.getString("file_list"));
+            if (j != null) {
+                songList.clear();
+                for (int i=0;i<j.length();i++){
+                    String x =j.getString(i);
+                    Log.i("json data",x);
+                    JSONObject fileList =new JSONObject(x);
+                    Media m=new Media(fileList.getLong("id"),fileList.getString("name"),fileList.getString("artist_name"),fileList.getString("path"),"audio/mpeg");
+                   JSONObject image = new JSONObject(fileList.getString("image"));
+                    m.setImage(getBitmapFromString(image.getString("data")));
+                    songList.add(m);
+                    Toast.makeText(MainActivity.this, "Songs Loaded", Toast.LENGTH_SHORT).show();
+                    remoteLoaded=true;
+                }
+            }
+//
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+    }
+}
+class JSONAsyncTaskVid extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+        }
+
+        @Override
+        protected String doInBackground(String... urls) {
+            HttpURLConnection urlConnection = null;
+            BufferedReader reader = null;
+
+            // Will contain the raw JSON response as a string.
+            String forecastJsonStr = null;
+
+            try {
+                // Construct the URL for the OpenWeatherMap query
+                // Possible parameters are avaiable at OWM's forecast API page, at
+                // http://openweathermap.org/API#forecast
+
+                URL url = new URL(urls[0]);
+
+                // Create the request to OpenWeatherMap, and open the connection
+                urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("GET");
+                urlConnection.connect();
+
+                // Read the input stream into a String
+                InputStream inputStream = urlConnection.getInputStream();
+                StringBuffer buffer = new StringBuffer();
+                if (inputStream == null) {
+                    // Nothing to do.
+                    return null;
+                }
+                reader = new BufferedReader(new InputStreamReader(inputStream));
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
+                    // But it does make debugging a *lot* easier if you print out the completed
+                    // buffer for debugging.
+                    buffer.append(line + "\n");
+                }
+
+                if (buffer.length() == 0) {
+                    // Stream was empty.  No point in parsing.
+                    return null;
+                }
+                forecastJsonStr = buffer.toString();
+                return forecastJsonStr;
+            } catch (IOException e) {
+                Log.e("PlaceholderFragment", "Error ", e);
+                // If the code didn't successfully get the weather data, there's no point in attemping
+                // to parse it.
+                Toast.makeText(MainActivity.this, "Connection Failed", Toast.LENGTH_SHORT).show();
+
+                return null;
+            } finally{
+                if (urlConnection != null) {
+                    urlConnection.disconnect();
+                }
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (final IOException e) {
+                        Log.e("PlaceholderFragment", "Error closing stream", e);
+                    }
+                }
+            }
+        }
+        private Bitmap getBitmapFromString(String jsonString) {
+            /*
+             * This Function converts the String back to Bitmap
+             * */
+            byte[] decodedString = Base64.decode(jsonString, Base64.DEFAULT);
+            Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+            return decodedByte;
+        }
+        protected void onPostExecute(String result) {
+            Log.i("Resulr out",result);
+            try {
+                JSONObject fileLists= new JSONObject(result);
+                Log.i("filelist",fileLists.toString());
+                JSONArray j = new JSONArray(fileLists.getString("file_list"));
+                if (j != null) {
+                    movieList.clear();
+                    for (int i=0;i<j.length();i++){
+                        String x =j.getString(i);
+                        Log.i("json data",x);
+                        JSONObject fileList =new JSONObject(x);
+                        Media m=new Media(fileList.getLong("id"),fileList.getString("name"),fileList.getString("artist_name"),fileList.getString("path"),"audio/mpeg");
+                        JSONObject image = new JSONObject(fileList.getString("image"));
+                        m.setImage(getBitmapFromString(image.getString("data")));
+                        movieList.add(m);
+                        Toast.makeText(MainActivity.this, "Videos Loaded", Toast.LENGTH_SHORT).show();
+                    }
+                }
+//
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
+class JSONAsyncTaskEbo extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+        }
+
+        @Override
+        protected String doInBackground(String... urls) {
+            HttpURLConnection urlConnection = null;
+            BufferedReader reader = null;
+
+            // Will contain the raw JSON response as a string.
+            String forecastJsonStr = null;
+
+            try {
+                // Construct the URL for the OpenWeatherMap query
+                // Possible parameters are avaiable at OWM's forecast API page, at
+                // http://openweathermap.org/API#forecast
+
+                URL url = new URL(urls[0]);
+
+                // Create the request to OpenWeatherMap, and open the connection
+                urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("GET");
+                urlConnection.connect();
+
+                // Read the input stream into a String
+                InputStream inputStream = urlConnection.getInputStream();
+                StringBuffer buffer = new StringBuffer();
+                if (inputStream == null) {
+                    // Nothing to do.
+                    return null;
+                }
+                reader = new BufferedReader(new InputStreamReader(inputStream));
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
+                    // But it does make debugging a *lot* easier if you print out the completed
+                    // buffer for debugging.
+                    buffer.append(line + "\n");
+                }
+
+                if (buffer.length() == 0) {
+                    // Stream was empty.  No point in parsing.
+                    return null;
+                }
+                forecastJsonStr = buffer.toString();
+                return forecastJsonStr;
+            } catch (IOException e) {
+                Log.e("PlaceholderFragment", "Error ", e);
+                // If the code didn't successfully get the weather data, there's no point in attemping
+                // to parse it.
+                Toast.makeText(MainActivity.this, "Connection Failed", Toast.LENGTH_SHORT).show();
+
+                return null;
+            } finally{
+                if (urlConnection != null) {
+                    urlConnection.disconnect();
+                }
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (final IOException e) {
+                        Log.e("PlaceholderFragment", "Error closing stream", e);
+                    }
+                }
+            }
+        }
+        private Bitmap getBitmapFromString(String jsonString) {
+            /*
+             * This Function converts the String back to Bitmap
+             * */
+            byte[] decodedString = Base64.decode(jsonString, Base64.DEFAULT);
+            Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+            return decodedByte;
+        }
+        protected void onPostExecute(String result) {
+            Log.i("Resulr out",result);
+            try {
+                JSONObject fileLists= new JSONObject(result);
+                Log.i("filelist",fileLists.toString());
+                JSONArray j = new JSONArray(fileLists.getString("file_list"));
+                if (j != null) {
+                    ebookList.clear();
+                    for (int i=0;i<j.length();i++){
+                        String x =j.getString(i);
+                        Log.i("json data",x);
+                        JSONObject fileList =new JSONObject(x);
+                        Media m=new Media(fileList.getLong("id"),fileList.getString("name"),fileList.getString("artist_name"),fileList.getString("path"),"audio/mpeg");
+                        JSONObject image = new JSONObject(fileList.getString("image"));
+                        m.setImage(getBitmapFromString(image.getString("data")));
+                        ebookList.add(m);
+                        Toast.makeText(MainActivity.this, "Ebook Loaded", Toast.LENGTH_SHORT).show();
+
+                    }
+                }
+//
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -201,6 +511,14 @@ public class MainActivity extends AppCompatActivity
         MainActivity.serverURL = serverURL;
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        TokenSaver tk  = new TokenSaver();
+        tk.clear(this);
+        Log.i("closing",tk.getToken(this));
+    }
+
     //    public class GridSpacingItemDecoration extends RecyclerView.ItemDecoration {
 //
 //        private int spanCount;
@@ -248,7 +566,7 @@ public class MainActivity extends AppCompatActivity
                 String result = data.getStringExtra("com.blikoon.qrcodescanner.got_qr_scan_relult");
                 TokenSaver tk = new TokenSaver();
                 tk.setIP(this,result);
-                Log.d(LOGTAG,"Have scan result in your app activity :"+ result);
+                Log.i(LOGTAG,"Have scan result in your app activity :"+ result);
                 AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
                 alertDialog.setTitle("Scan result");
                 alertDialog.setMessage("Code scanned successfully");
@@ -258,6 +576,7 @@ public class MainActivity extends AppCompatActivity
                                 dialog.dismiss();
                                 Intent i = new Intent(MainActivity.this,LoginActivity.class);
                                 startActivityForResult(i,REQUEST_CODE_LOGIN);
+
                             }
                         });
                 alertDialog.show();
@@ -266,7 +585,7 @@ public class MainActivity extends AppCompatActivity
 
             case (REQUEST_CODE_LOGIN): {
                 TokenSaver tk = new TokenSaver();
-                String token=tk.getToken(this,"token");
+                String token=tk.getToken(this);
                 Log.i("Login succesfull",token);
                 Log.i("Login succesfull","hellllllllllllllo");
             }
@@ -306,7 +625,8 @@ public class MainActivity extends AppCompatActivity
 //
 //
 //    }
-}    private String getPostDataString(HashMap<String, String> params) throws UnsupportedEncodingException {
+}
+    private String getPostDataString(HashMap<String, String> params) throws UnsupportedEncodingException {
         StringBuilder result = new StringBuilder();
         boolean first = true;
         for(Map.Entry<String, String> entry : params.entrySet()){
@@ -368,50 +688,6 @@ public class MainActivity extends AppCompatActivity
         return response;
     }
 
-    public String  performGetCall(String requestURL,
-                                   HashMap<String, String> postDataParams) {
-
-        URL url;
-        String response = "";
-        try {
-            url = new URL(requestURL);
-
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setReadTimeout(15000);
-            conn.setConnectTimeout(15000);
-            conn.setRequestMethod("GET");
-            conn.setDoInput(true);
-            conn.setDoOutput(true);
-
-
-            OutputStream os = conn.getOutputStream();
-            BufferedWriter writer = new BufferedWriter(
-                    new OutputStreamWriter(os, "UTF-8"));
-            writer.write(getPostDataString(postDataParams));
-
-            writer.flush();
-            writer.close();
-            os.close();
-            int responseCode=conn.getResponseCode();
-
-            if (responseCode == HttpsURLConnection.HTTP_OK) {
-                String line;
-                BufferedReader br=new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                while ((line=br.readLine()) != null) {
-                    response+=line;
-                }
-            }
-            else {
-                response="";
-
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return response;
-    }
-
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -437,16 +713,37 @@ public class MainActivity extends AppCompatActivity
 
         SearchManager searchManager = (SearchManager) MainActivity.this.getSystemService(Context.SEARCH_SERVICE);
 
+
+
         final SearchView searchView;
         if (searchItem != null) {
             searchView = (SearchView) searchItem.getActionView();
+            searchView.setSearchableInfo(
+                    searchManager.getSearchableInfo(getComponentName()));
             searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                 @Override
                 public boolean onQueryTextSubmit(String query) {
                     // Toast like print
-                    Log.i("Query ", "SearchOnQueryTextSubmit: " + query);
                     ArrayList searchL = new ArrayList();
                     try {
+                        for (Map.Entry<String, ArrayList<Media>> entry : catagory.entrySet()) {
+                            if(entry.getKey().toLowerCase().startsWith(query.toLowerCase())){
+                                query=entry.getKey();
+                                break;
+                            }
+                        }
+                        for (Map.Entry<String, ArrayList<Media>> entry : catagory1.entrySet()) {
+                            if(entry.getKey().toLowerCase().startsWith(query.toLowerCase())){
+                                query=entry.getKey();
+                                break;
+                            }
+                        }
+                        for (Map.Entry<String, ArrayList<Media>> entry : catagory2.entrySet()) {
+                            if(entry.getKey().toLowerCase().startsWith(query.toLowerCase())){
+                                query=entry.getKey();
+                                break;
+                            }
+                        }
                         ArrayList<Media> cat = catagory.get(query);
                         cat.addAll(catagory1.get(query)==null?new ArrayList<Media>():catagory1.get(query));
                         cat.addAll(catagory2.get(query)==null?new ArrayList<Media>():catagory2.get(query));
@@ -492,15 +789,20 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            Toast.makeText(this, "Clicked item one", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Loggedout one", Toast.LENGTH_SHORT).show();
+//            new LongOperation().execute();
+
+
+            loggedOut();
+
         }
         return super.onOptionsItemSelected(item);
     }
-
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
+        TokenSaver tk = new TokenSaver();
         int id = item.getItemId();
 
         if (id == R.id.nav_ebook) {
@@ -514,48 +816,64 @@ public class MainActivity extends AppCompatActivity
             mediaAdapter.setMediaList(movieList);
 
         } else if (id == R.id.nav_share) {
-            try {
-                mediaPlayer.release();
-                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                mediaPlayer.setDataSource(this, Uri.parse("http://10.10.6.161:8012/playAudio?path=des.mp3"));
-                mediaPlayer.prepareAsync();
-
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-            } catch (SecurityException e) {
-                e.printStackTrace();
-            } catch (IllegalStateException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                mediaPlayer.release();
+//                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+//                mediaPlayer.setDataSource(this, Uri.parse("http://10.10.5.166:8012/playAudio?path=des.mp3"));
+//                mediaPlayer.prepareAsync();
+//
+//            } catch (IllegalArgumentException e) {
+//                e.printStackTrace();
+//            } catch (SecurityException e) {
+//                e.printStackTrace();
+//            } catch (IllegalStateException e) {
+//                e.printStackTrace();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
 
         } else if (id == R.id.nav_send) {
-            HashMap dataParam = new HashMap<String, String>();
-            String file= performGetCall("http://10.10.6.161:8012/getAllAudio",dataParam);
-            Log.i("get main respobnse somf",file);
 
-            if (!file.isEmpty()){
-                JSONObject main  = null;
-                try {
-                    main = new JSONObject(file);
-                    String file1 = main.getString("file_list");
-                    Log.i("get all somf",file1);
-                    JSONObject fileList = new JSONObject(file1);
-                    songList.clear();
-                    songList.add(new Media(fileList.getLong("id"),fileList.getString("name"),fileList.getString("artist_name"),fileList.getString("path"),"audio/mpeg"));
-                    mediaAdapter.setMediaList(songList);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
+
+//
 
         }else if (id == R.id.nav_remote) {
-            Intent i = new Intent(MainActivity.this,QrCodeActivity.class);
-            startActivityForResult( i,REQUEST_CODE_QR_SCAN);
+            if (!isLoggedIn()) {
+                Intent i = new Intent(MainActivity.this, QrCodeActivity.class);
+                startActivityForResult(i, REQUEST_CODE_QR_SCAN);
 
+            }else{
+                if(!remoteLoaded) {
+                    String request = "http://" + tk.getIP(this) + ":8012/getAllAudio";
+                    new JSONAsyncTaskAud().execute(request);
+                    String request1 = "http://" + tk.getIP(this) + ":8012/getAllVideo";
+                    new JSONAsyncTaskVid().execute(request1);
+                    String request2 = "http://" + tk.getIP(this) + ":8012/getAllEbook";
+                    new JSONAsyncTaskEbo().execute(request2);
+                    AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+                    alertDialog.setTitle("Message from remote");
+                    alertDialog.setMessage("Wait until load all contents");
+                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                    alertDialog.show();
+                }else{
+                    AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+                    alertDialog.setTitle("Message from remote");
+                    alertDialog.setMessage("Already Loaded");
+                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                    alertDialog.show();
+                }
+            }
         }
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
@@ -913,6 +1231,20 @@ public class MainActivity extends AppCompatActivity
                         grantResults);
         }
     }
+    private boolean isLoggedIn(){
+        TokenSaver tk = new TokenSaver();
+        if(tk.getIP(this)!=null && tk.getToken(this)!=null){
+            Log.i("Token",tk.getToken(this));
+            Log.i("IP",tk.getIP(this));
+            return true;
+        }else{
+            return false;
+        }
+    }
+    private void loggedOut(){
 
+        TokenSaver.clear(this);
+
+    }
 
 }

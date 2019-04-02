@@ -88,7 +88,9 @@ exports.getAllVideo = function(req,res){
       console.log(row);
     });
     
-  res.send(JSON.stringify({file_list:file_list}));
+   res.status(200).send({
+              file_list
+              });
   }
   });
 }

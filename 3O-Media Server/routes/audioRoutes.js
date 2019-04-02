@@ -87,8 +87,10 @@ exports.getAllAudio = function(req,res){
       file_list.push(row)
       console.log(row);
     });
-    
-  res.send(JSON.stringify({file_list:file_list}));
+    res.status(200).send({
+              file_list
+              });
+  
   }
   });
 }

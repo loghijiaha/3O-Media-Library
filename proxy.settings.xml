@@ -1,0 +1,8 @@
+<application>
+  <component name="HttpConfigurable">
+    <option name="USE_PROXY_PAC" value="true" />
+    <option name="PROXY_HOST" value="cache.mrt.ac.lk" />
+    <option name="PROXY_PORT" value="3128" />
+    <option name="KEEP_PROXY_PASSWORD" value="true" />
+  </component>
+</application>

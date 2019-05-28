@@ -13,27 +13,29 @@
   "author": "Loghi",
   "license": "MIT",
   "dependencies": {
-    "body-parser": "^1.18.3",
-    "express": "^4.16.4",
-    "jsonwebtoken": "^8.5.0"
+    "@fortawesome/fontawesome-free": "5.7.0",
+    "bootstrap": "4.2.1",
+    "chart.js": "2.7.3",
+    "cookie-parser": "^1.4.4",
+    "datatables.net-bs4": "1.10.19",
+    "express": "^4.17.1",
+    "express-session": "^1.16.1",
+    "formidable": "^1.2.1",
+    "jquery": "3.3.1",
+    "jquery.easing": "^1.4.1",
+    "jsonwebtoken": "^8.5.1",
+    "node-id3": "^0.1.7",
+    "sqlite3": "^4.0.8"
   },
- "dependencies": {
-        "@fortawesome/fontawesome-free": "5.7.0",
-        "bootstrap": "4.2.1",
-        "chart.js": "2.7.3",
-        "datatables.net-bs4": "1.10.19",
-        "jquery": "3.3.1",
-        "jquery.easing": "^1.4.1"
-    },
-    "devDependencies": {
-        "browser-sync": "2.26.3",
-        "gulp": "^4.0.0",
-        "gulp-autoprefixer": "^6.0.0",
-        "gulp-clean-css": "4.0.0",
-        "gulp-header": "2.0.7",
-        "gulp-plumber": "^1.2.1",
-        "gulp-rename": "1.4.0",
-        "gulp-sass": "4.0.2",
-        "gulp-uglify": "3.0.1"
-    }
+  "devDependencies": {
+    "browser-sync": "2.26.3",
+    "gulp": "^4.0.0",
+    "gulp-autoprefixer": "^6.0.0",
+    "gulp-clean-css": "4.0.0",
+    "gulp-header": "2.0.7",
+    "gulp-plumber": "^1.2.1",
+    "gulp-rename": "1.4.0",
+    "gulp-sass": "4.0.2",
+    "gulp-uglify": "3.0.1"
+  }
 }

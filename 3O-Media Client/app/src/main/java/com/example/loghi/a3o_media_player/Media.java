@@ -59,4 +59,7 @@ public class Media extends MediaItem {
     }
     public void setMediaPath(String mediaPath){ this.mediaPath = mediaPath ;}
 
+    public void setMimeType(String mimeType) {
+        this.mimeType = mimeType;
+    }
 }

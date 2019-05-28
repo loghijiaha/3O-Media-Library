@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity
     public static VideoView videoView;
     private static boolean remoteLoaded=false;
     private String changer;
-
+    private MenuItem logId;
     public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 123;
     private static final  String TAG = "MainActivity";
 
@@ -202,6 +202,7 @@ class JSONAsyncTaskAud extends AsyncTask<String, Void, String> {
             Toast.makeText(MainActivity.this, "Connection Failed", Toast.LENGTH_SHORT).show();
 
             return null;
+
         } finally{
             if (urlConnection != null) {
                 urlConnection.disconnect();
@@ -230,15 +231,33 @@ class JSONAsyncTaskAud extends AsyncTask<String, Void, String> {
             Log.i("filelist",fileLists.toString());
             JSONArray j = new JSONArray(fileLists.getString("file_list"));
             if (j != null) {
+
+                catagory.clear();
                 songList.clear();
                 for (int i=0;i<j.length();i++){
                     String x =j.getString(i);
                     Log.i("json data",x);
                     JSONObject fileList =new JSONObject(x);
                     Media m=new Media(fileList.getLong("id"),fileList.getString("name"),fileList.getString("artist_name"),fileList.getString("path"),"audio/mpeg");
-                   JSONObject image = new JSONObject(fileList.getString("image"));
-                    m.setImage(getBitmapFromString(image.getString("data")));
-                    songList.add(m);
+
+
+                    ArrayList<Media> medList = catagory.get(m.getArtist());
+                    if (medList !=null ){
+                        medList.add(m);
+                    }else {
+                        ArrayList<Media> tempMed = new ArrayList<>();
+                        tempMed.add(m);
+                        catagory.put(m.getArtist(),tempMed);
+                    }
+
+                }
+                for (Map.Entry<String, ArrayList<Media>> cat : catagory.entrySet()){
+                    songList.add(new Header(cat.getKey()));
+                    for(Media media : cat.getValue()){
+
+                        songList.add(media);
+
+                    }
                     Toast.makeText(MainActivity.this, "Songs Loaded", Toast.LENGTH_SHORT).show();
                     remoteLoaded=true;
                 }
@@ -330,21 +349,39 @@ class JSONAsyncTaskVid extends AsyncTask<String, Void, String> {
             return decodedByte;
         }
         protected void onPostExecute(String result) {
-            Log.i("Resulr out",result);
+            Log.i("Result out",result);
             try {
                 JSONObject fileLists= new JSONObject(result);
                 Log.i("filelist",fileLists.toString());
                 JSONArray j = new JSONArray(fileLists.getString("file_list"));
+
                 if (j != null) {
                     movieList.clear();
+                    catagory1.clear();
+
                     for (int i=0;i<j.length();i++){
                         String x =j.getString(i);
                         Log.i("json data",x);
                         JSONObject fileList =new JSONObject(x);
-                        Media m=new Media(fileList.getLong("id"),fileList.getString("name"),fileList.getString("artist_name"),fileList.getString("path"),"audio/mpeg");
-                        JSONObject image = new JSONObject(fileList.getString("image"));
-                        m.setImage(getBitmapFromString(image.getString("data")));
-                        movieList.add(m);
+                        Media m=new Media(fileList.getLong("id"),fileList.getString("name"),fileList.getString("artist_name"),fileList.getString("path"),"video/mpeg");
+                        Log.i("rrrrrrrrrrrrr",m.getArtist());
+                        ArrayList<Media> medList = catagory1.get(m.getArtist());
+                        if (medList !=null ){
+                            medList.add(m);
+                        }else {
+                            ArrayList<Media> tempMed = new ArrayList<>();
+                            tempMed.add(m);
+                            catagory1.put(m.getArtist(),tempMed);
+                        }
+
+                    }
+                    for (Map.Entry<String, ArrayList<Media>> cat : catagory1.entrySet()){
+                        movieList.add(new Header(cat.getKey()));
+                        for(Media media : cat.getValue()){
+                            movieList.add(media);
+                            Log.i("addedddddddddd","movieeeeeee");
+
+                        }
                         Toast.makeText(MainActivity.this, "Videos Loaded", Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -442,6 +479,7 @@ class JSONAsyncTaskEbo extends AsyncTask<String, Void, String> {
                 JSONArray j = new JSONArray(fileLists.getString("file_list"));
                 if (j != null) {
                     ebookList.clear();
+                    catagory2.clear();
                     for (int i=0;i<j.length();i++){
                         String x =j.getString(i);
                         Log.i("json data",x);
@@ -449,8 +487,25 @@ class JSONAsyncTaskEbo extends AsyncTask<String, Void, String> {
                         Media m=new Media(fileList.getLong("id"),fileList.getString("name"),fileList.getString("artist_name"),fileList.getString("path"),"audio/mpeg");
                         JSONObject image = new JSONObject(fileList.getString("image"));
                         m.setImage(getBitmapFromString(image.getString("data")));
-                        ebookList.add(m);
+
                         Toast.makeText(MainActivity.this, "Ebook Loaded", Toast.LENGTH_SHORT).show();
+                        ArrayList<Media> medList = catagory2.get(m.getArtist());
+                        if (medList !=null ){
+                            medList.add(m);
+                        }else {
+                            ArrayList<Media> tempMed = new ArrayList<>();
+                            tempMed.add(m);
+                            catagory2.put(m.getArtist(),tempMed);
+                        }
+
+                    }
+                    for (Map.Entry<String, ArrayList<Media>> cat : catagory2.entrySet()){
+                        ebookList.add(new Header(cat.getKey()));
+                        for(Media media : cat.getValue()){
+                            ebookList.add(media);
+                            Log.i("addedddddddddd","movieeeeeee");
+
+                        }
 
                     }
                 }
@@ -555,42 +610,44 @@ class JSONAsyncTaskEbo extends AsyncTask<String, Void, String> {
 //    }
 @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-
-            case (REQUEST_CODE_QR_SCAN): {
-                if(data==null)
-                    return;
 
 
-                //Getting the passed result
-                String result = data.getStringExtra("com.blikoon.qrcodescanner.got_qr_scan_relult");
-                TokenSaver tk = new TokenSaver();
-                tk.setIP(this,result);
-                Log.i(LOGTAG,"Have scan result in your app activity :"+ result);
-                AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
-                alertDialog.setTitle("Scan result");
-                alertDialog.setMessage("Code scanned successfully");
-                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                                Intent i = new Intent(MainActivity.this,LoginActivity.class);
-                                startActivityForResult(i,REQUEST_CODE_LOGIN);
+    if (requestCode == REQUEST_CODE_QR_SCAN) {
+        if (data == null)
+            return;
 
-                            }
-                        });
-                alertDialog.show();
-            }
-            break;
 
-            case (REQUEST_CODE_LOGIN): {
+        //Getting the passed result
+        String result = data.getStringExtra("com.blikoon.qrcodescanner.got_qr_scan_relult");
+        TokenSaver tk = new TokenSaver();
+        tk.setIP(this, result);
+        Log.i(LOGTAG, "Have scan result in your app activity :" + result);
+        AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+        alertDialog.setTitle("Scan result");
+        alertDialog.setMessage("Code scanned successfully");
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        Intent i = new Intent(MainActivity.this, LoginActivity.class);
+                        startActivityForResult(i, REQUEST_CODE_LOGIN);
+
+                    }
+                });
+        alertDialog.show();
+    }
+
+
+            if(requestCode == REQUEST_CODE_LOGIN) {
                 TokenSaver tk = new TokenSaver();
                 String token=tk.getToken(this);
-                Log.i("Login succesfull",token);
-                Log.i("Login succesfull","hellllllllllllllo");
+                if(isLoggedIn()) {
+                    logId.setTitle("Logout");
+                }
+
             }
-            break;
-        }
+
+
 
         if(resultCode != Activity.RESULT_OK)
         {
@@ -808,32 +865,30 @@ class JSONAsyncTaskEbo extends AsyncTask<String, Void, String> {
         if (id == R.id.nav_ebook) {
             Toast.makeText(this, "Ebook", Toast.LENGTH_SHORT).show();
             mediaAdapter.setMediaList(ebookList);
+            Log.i("size of" , String.valueOf(ebookList.size()));
+
         } else if (id == R.id.nav_music) {
             mediaAdapter.setMediaList(songList);
             Toast.makeText(this, "Songs", Toast.LENGTH_SHORT).show();
+            Log.i("size of" , String.valueOf(songList.size()));
+
         } else if (id == R.id.nav_movie) {
             Toast.makeText(this, "Videos", Toast.LENGTH_SHORT).show();
             mediaAdapter.setMediaList(movieList);
+            Log.i("size of" , String.valueOf(movieList.size()));
 
-        } else if (id == R.id.nav_share) {
-//            try {
-//                mediaPlayer.release();
-//                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-//                mediaPlayer.setDataSource(this, Uri.parse("http://10.10.5.166:8012/playAudio?path=des.mp3"));
-//                mediaPlayer.prepareAsync();
-//
-//            } catch (IllegalArgumentException e) {
-//                e.printStackTrace();
-//            } catch (SecurityException e) {
-//                e.printStackTrace();
-//            } catch (IllegalStateException e) {
-//                e.printStackTrace();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
+        } else if (id == R.id.nav_reload) {
+            movieList.clear();
+            songList.clear();
+            ebookList.clear();
+            getmovieList();
+            getebookList();
+            getsongList();
 
-        } else if (id == R.id.nav_send) {
+        }else if (id == R.id.nav_share) {
 
+        }  else if (id == R.id.nav_send) {
+            loggedOut();
 
 //
 
@@ -844,10 +899,11 @@ class JSONAsyncTaskEbo extends AsyncTask<String, Void, String> {
 
             }else{
                 if(!remoteLoaded) {
-                    String request = "http://" + tk.getIP(this) + ":8012/getAllAudio";
-                    new JSONAsyncTaskAud().execute(request);
                     String request1 = "http://" + tk.getIP(this) + ":8012/getAllVideo";
                     new JSONAsyncTaskVid().execute(request1);
+                    String request = "http://" + tk.getIP(this) + ":8012/getAllAudio";
+                    new JSONAsyncTaskAud().execute(request);
+
                     String request2 = "http://" + tk.getIP(this) + ":8012/getAllEbook";
                     new JSONAsyncTaskEbo().execute(request2);
                     AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
@@ -939,6 +995,8 @@ class JSONAsyncTaskEbo extends AsyncTask<String, Void, String> {
         songList = new ArrayList<>();
         movieList = new ArrayList<>();
         ebookList = new ArrayList<>();
+        logId= (MenuItem)findViewById(R.id.nav_send);
+
         owl= BitmapFactory.decodeResource(this.getResources(),R.drawable.owl);
         layout = (SlidingUpPanelLayout)findViewById(R.id.slideUp_layout);
         videoView = (VideoView)findViewById(R.id.video);
@@ -957,12 +1015,13 @@ class JSONAsyncTaskEbo extends AsyncTask<String, Void, String> {
         if(timeElapsed>0){
             mediaPlayer.start();
         }else {
+            mediaPlayer.prepareAsync();
             mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 public void onPrepared(MediaPlayer mp) {
                     mp.start();
                 }
             });
-            mediaPlayer.prepareAsync();
+
         }
         timeElapsed = mediaPlayer.getCurrentPosition();
         seekbar.setProgress((int) timeElapsed);

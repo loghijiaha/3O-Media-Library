@@ -26,7 +26,7 @@ exports.addAudio = function(req,res){
         res.send("<script type='text/javascript'> alert('Something wrong in metadata');location.href = 'http://localhost:8012/addMedia'</script>");
       }
       var metadata=[
-        tags.title,
+        tags.title ? tags.title:files.file.name,
         tags.artist ,
         tags.image ? tags.image.imageBuffer: null ,
         files.file.name

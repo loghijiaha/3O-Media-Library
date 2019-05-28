@@ -34,6 +34,8 @@ public class TokenSaver {
         SharedPreferences.Editor editor = pref.edit();
         editor.clear().commit();
 
+        c.getSharedPreferences("com.example.loghi.a3o_media_player.SHARED_PREF_NAME", 0).edit().clear().commit();
+
     }
 
 }

@@ -417,6 +417,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                         resultIntent.putExtra("token", token);
 
                         setResult(Activity.RESULT_OK, resultIntent);
+
                     }
 
                     finish();

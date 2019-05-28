@@ -4,7 +4,6 @@ var bodyParser= require('body-parser');
 var jwt=require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
-const passport = require('passport');
 const sqlite3 = require('sqlite3').verbose();
 var register = require('./routes/registerRoutes');
 var audio = require('./routes/audioRoutes');
@@ -92,11 +91,13 @@ const JWTDownloadVerifier = async (req, res, next) => {
 
 app.post('/playAudio', JWTDownloadVerifier, (req, res, next)  =>{
     var filePath = path.join(__dirname, 'Music/'+req.body.path);
+    console.log(req.body)
     var stat = fileSystem.statSync(filePath);
     res.writeHead(200, {
         'Content-Type': 'audio/mpeg',
         'Content-Length': stat.size
     });
+    console.log("Playing audio");
     var readStream = fileSystem.createReadStream(filePath);
     // replaced all the event handlers with a simple call to readStream.pipe()
     readStream.pipe(res);
@@ -108,6 +109,8 @@ app.post('/playVideo', JWTDownloadVerifier, (req, res, next)  =>{
         'Content-Type': 'video/mp4'|'video/3gpp'|'video/quicktime',
         'Content-Length': stat.size
     });
+    console.log("Playing video");
+
     var readStream = fileSystem.createReadStream(filePath);
     // replaced all the event handlers with a simple call to readStream.pipe()
     readStream.pipe(res);

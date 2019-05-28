@@ -1,10 +1,19 @@
 package com.example.loghi.a3o_media_player;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.ContentUris;
+import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -15,7 +24,10 @@ import android.view.ViewGroup;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -27,6 +39,8 @@ import android.widget.VideoView;
 
 import com.bumptech.glide.Glide;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
+
+import static com.example.loghi.a3o_media_player.MainActivity.MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE;
 
 //public class MediaAdapter extends BaseAdapter {
 //    private ArrayList<Media> medias;
@@ -122,7 +136,51 @@ class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
         // return null;
     }
+    public boolean checkPermissionREAD_EXTERNAL_STORAGE(
+            final Context context) {
+        int currentAPIVersion = Build.VERSION.SDK_INT;
+        if (currentAPIVersion >= android.os.Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(context,
+                    Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(
+                        (Activity) context,
+                        Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                    showDialog("External storage", context,
+                            Manifest.permission.READ_EXTERNAL_STORAGE);
 
+                } else {
+                    ActivityCompat
+                            .requestPermissions(
+                                    (Activity) context,
+                                    new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
+                                    MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+                }
+                return false;
+            } else {
+                return true;
+            }
+
+        } else {
+            return true;
+        }
+    }
+    public void showDialog(final String msg, final Context context,
+                           final String permission) {
+        AlertDialog.Builder alertBuilder = new AlertDialog.Builder(context);
+        alertBuilder.setCancelable(true);
+        alertBuilder.setTitle("Permission necessary");
+        alertBuilder.setMessage(msg + " permission is necessary");
+        alertBuilder.setPositiveButton(android.R.string.yes,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        ActivityCompat.requestPermissions((Activity) context,
+                                new String[] { permission },
+                                MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+                    }
+                });
+        AlertDialog alert = alertBuilder.create();
+        alert.show();
+    }
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         if(holder instanceof MHeader)
@@ -178,20 +236,39 @@ class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                             MainActivity.videoView.setVisibility(View.INVISIBLE);
                             try {
                                 mediaPlayer.setDataSource(mContext, trackUri);
-                            }catch (Exception ex){
 
                             }
-                            try{
+                            catch (Exception ex){
 
-                                TokenSaver tk = new TokenSaver();
-                                Uri url = Uri.parse("http://10.10.5.166:8012/playAudio?path=Maaris Aanandhi - SenSongsmp3.Co.mp3");
-                            }catch (Exception e){
+                                String url = "http://"+TokenSaver.getIP(mContext)+":8012/Music/Music"+media.getMediaPath();
+                                mediaPlayer.setDataSource( url);
+                                Log.i("Song plaing", url);
 
                             }
+//                            try{
+//
+//                                if(checkPermissionREAD_EXTERNAL_STORAGE(mContext)) {
+//                                    String url = "http://127.0.0.1:8012/Music/MusicMaaris%20Aanandhi%20-%20SenSongsmp3.Co.mp3";
+////                                Map<String, String> headers = new HashMap<String, String>();
+////                                headers.put("token", TokenSaver.getToken(mContext));
+////                                headers.put("path", mItem.media.getMediaPath());
+////                                Method method = mediaPlayer.getClass().getMethod("setDataSource", new Class[] { Context.class, Uri.class, Map.class });
+////                                method.invoke(mediaPlayer, new Object[] {this, url, headers});
+//                                    mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+//                                    mediaPlayer.setDataSource( url);
+//                                    mediaPlayer.prepare();
+//
+//
+//                                }
+//                            }catch (Exception e){
+//
+//                            }
 
 
                             MainActivity.songName.setText(media.getTitle());
+                            MainActivity.mp3Image.setImageResource(R.drawable.owl);
                             MainActivity.mp3Image.setVisibility(View.VISIBLE);
+
                             MainActivity.mp3Image.setImageBitmap(media.getImage());
                             MainActivity.playBtn.setVisibility(View.VISIBLE);
                             MainActivity.pauseBtn.setVisibility(View.VISIBLE);
@@ -199,7 +276,13 @@ class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                             MainActivity.forwardBtn.setVisibility(View.VISIBLE);
                             MainActivity.seekbar.setVisibility(View.VISIBLE);
                             layout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
-                        }else if(mItem.media.getMimeType().startsWith("video")){
+                        }else {
+                            try{
+                                MainActivity.videoView.setVideoPath(mItem.media.getMediaPath());
+                            }catch(Exception er){
+                                String urlw = "http://"+TokenSaver.getIP(mContext)+":8012/Video/Video"+media.getMediaPath();
+                                MainActivity.videoView.setVideoPath(urlw);                                Log.i("Video playing", urlw);
+                            }
                             MainActivity.songName.setText(media.getTitle());
                             MainActivity.mp3Image.setVisibility(View.INVISIBLE);
                             MainActivity.playBtn.setVisibility(View.INVISIBLE);
@@ -214,11 +297,9 @@ class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                             //Starting VideoView By Setting MediaController and URI
                             MainActivity.videoView.setVisibility(View.VISIBLE);
                             MainActivity.videoView.setMediaController(mediaController);
-                            MainActivity.videoView.setVideoPath(mItem.media.getMediaPath());
+
 
                             layout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
-                        }else{
-
                         }
                     } catch (Exception e) {
                         Log.e("MUSIC SERVICE", "Error setting data source", e);                    }

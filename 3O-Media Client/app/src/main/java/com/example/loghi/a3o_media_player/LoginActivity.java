@@ -225,7 +225,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
     }
 
-    private boolean isEmailValid(String email) {
+    public boolean isEmailValid(String email) {
         //TODO: Replace this with your own logical
         String regex="^[a-zA-Z0-9]+$";
         Pattern pattern= Pattern.compile(regex);
@@ -233,7 +233,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         return matcher.matches();
     }
 
-    private boolean isPasswordValid(String password) {
+    public boolean isPasswordValid(String password) {
         //TODO: Replace this with your own logic
         return password.length() > 2;
     }
@@ -479,6 +479,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             return response;
         }
+    }
+    public Boolean validate(String user, String pass){
+
     }
 }
 

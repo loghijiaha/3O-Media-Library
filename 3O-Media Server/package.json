@@ -18,7 +18,7 @@
     "chart.js": "2.7.3",
     "cookie-parser": "^1.4.4",
     "datatables.net-bs4": "1.10.19",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "express-session": "^1.16.1",
     "formidable": "^1.2.1",
     "jquery": "3.3.1",

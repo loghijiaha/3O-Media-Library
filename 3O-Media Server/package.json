@@ -23,7 +23,7 @@
     "formidable": "^1.2.1",
     "jquery": "3.3.1",
     "jquery.easing": "^1.4.1",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "node-id3": "^0.1.7",
     "sqlite3": "^4.0.8"
   },
